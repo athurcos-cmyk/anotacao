@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0A1628">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Anotacao</title>
+  <title>Anotação</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,8 @@
     <!-- Header -->
     <header id="header">
       <div class="header-top">
-        <h1>Anotacao</h1>
-        <button id="btn-historico" type="button" aria-label="Historico">
+        <h1>Anotação</h1>
+        <button id="btn-historico" type="button" aria-label="Histórico">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </button>
       </div>
@@ -40,15 +40,15 @@
           <h2>Abertura</h2>
 
           <div class="campo">
-            <label for="horario">Horario <span class="obrigatorio">*</span></label>
+            <label for="horario">Horário <span class="obrigatorio">*</span></label>
             <input type="time" id="horario" required>
           </div>
 
           <div class="campo">
-            <label>Posicao da cama <span class="obrigatorio">*</span></label>
+            <label>Posição da cama <span class="obrigatorio">*</span></label>
             <div class="radio-group">
               <label class="radio-btn"><input type="radio" name="posicao-cama" value="baixa" required><span>Baixa</span></label>
-              <label class="radio-btn"><input type="radio" name="posicao-cama" value="media"><span>Media</span></label>
+              <label class="radio-btn"><input type="radio" name="posicao-cama" value="média"><span>Média</span></label>
               <label class="radio-btn"><input type="radio" name="posicao-cama" value="alta"><span>Alta</span></label>
             </div>
           </div>
@@ -63,7 +63,7 @@
 
           <div class="campo">
             <label>Grades <span class="obrigatorio">*</span></label>
-            <div class="radio-group">
+            <div class="radio-group vertical">
               <label class="radio-btn"><input type="radio" name="grades" value="totalmente elevadas" required><span>Totalmente elevadas</span></label>
               <label class="radio-btn"><input type="radio" name="grades" value="parcialmente elevadas"><span>Parcialmente elevadas</span></label>
               <label class="radio-btn"><input type="radio" name="grades" value="abaixadas"><span>Abaixadas</span></label>
@@ -71,7 +71,7 @@
           </div>
 
           <div class="campo">
-            <label>Decubito <span class="obrigatorio">*</span></label>
+            <label>Decúbito <span class="obrigatorio">*</span></label>
             <div class="radio-group vertical">
               <label class="radio-btn"><input type="radio" name="decubito" value="parcialmente elevado" required><span>Parcialmente elevado</span></label>
               <label class="radio-btn"><input type="radio" name="decubito" value="dorsal"><span>Dorsal</span></label>
@@ -82,7 +82,7 @@
           </div>
 
           <div class="erro-msg" id="erro-bloco1"></div>
-          <button type="button" class="btn-next" data-next="2">Proximo</button>
+          <button type="button" class="btn-next" data-next="2">Próximo</button>
         </section>
 
         <!-- BLOCO 2 - APRESENTA -->
@@ -102,36 +102,36 @@
           </div>
 
           <div class="campo">
-            <label>Colaboracao <span class="obrigatorio">*</span></label>
+            <label>Colaboração <span class="obrigatorio">*</span></label>
             <div class="radio-group">
               <label class="radio-btn"><input type="radio" name="colaboracao" value="sendo colaborativa" required><span>Colaborativa</span></label>
-              <label class="radio-btn"><input type="radio" name="colaboracao" value="nao sendo colaborativa com os cuidados"><span>Nao colaborativa</span></label>
+              <label class="radio-btn"><input type="radio" name="colaboracao" value="não sendo colaborativa com os cuidados"><span>Não colaborativa</span></label>
             </div>
           </div>
 
           <div class="campo">
-            <label>Deambulacao <span class="obrigatorio">*</span></label>
+            <label>Deambulação <span class="obrigatorio">*</span></label>
             <div class="radio-group vertical">
               <label class="radio-btn"><input type="radio" name="deambulacao" value="deambula sozinha" required><span>Deambula sozinha</span></label>
-              <label class="radio-btn"><input type="radio" name="deambulacao" value="deambula com auxilio"><span>Deambula com auxilio</span></label>
-              <label class="radio-btn"><input type="radio" name="deambulacao" value="nao deambula"><span>Nao deambula</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="deambula com auxílio"><span>Deambula com auxílio</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="não deambula"><span>Não deambula</span></label>
               <label class="radio-btn"><input type="radio" name="deambulacao" value="acamada no momento"><span>Acamada no momento</span></label>
               <label class="radio-btn"><input type="radio" name="deambulacao" value="restrita ao leito"><span>Restrita ao leito (100% acamada)</span></label>
             </div>
           </div>
 
           <div class="campo condicional" id="deambula-auxilio-container" style="display:none">
-            <label for="deambula-auxilio">Especifique o auxilio <span class="obrigatorio">*</span></label>
+            <label for="deambula-auxilio">Especifique o auxílio <span class="obrigatorio">*</span></label>
             <input type="text" id="deambula-auxilio" placeholder="Ex: bengala, andador, cadeira de rodas, apoio de um profissional">
           </div>
 
           <div class="campo">
-            <label>Respiracao <span class="obrigatorio">*</span></label>
+            <label>Respiração <span class="obrigatorio">*</span></label>
             <div class="radio-group vertical">
               <label class="radio-btn"><input type="radio" name="respiracao" value="eupneica em ar ambiente" required><span>Eupneica em ar ambiente</span></label>
-              <label class="radio-btn"><input type="radio" name="respiracao" value="cateter nasal de O2"><span>Cateter nasal de O2</span></label>
-              <label class="radio-btn"><input type="radio" name="respiracao" value="mascara de O2"><span>Mascara de O2</span></label>
-              <label class="radio-btn"><input type="radio" name="respiracao" value="ventilacao mecanica"><span>Ventilacao mecanica</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="cateter nasal de O₂"><span>Cateter nasal de O₂</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="máscara de O₂"><span>Máscara de O₂</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="ventilação mecânica"><span>Ventilação mecânica</span></label>
             </div>
           </div>
 
@@ -144,7 +144,7 @@
             <label>Acompanhante <span class="obrigatorio">*</span></label>
             <div class="radio-group">
               <label class="radio-btn"><input type="radio" name="acompanhante" value="sim" required><span>Sim</span></label>
-              <label class="radio-btn"><input type="radio" name="acompanhante" value="nao"><span>Nao</span></label>
+              <label class="radio-btn"><input type="radio" name="acompanhante" value="nao"><span>Não</span></label>
             </div>
           </div>
 
@@ -152,38 +152,38 @@
             <label for="acompanhante-nome">Nome do acompanhante <span class="obrigatorio">*</span></label>
             <input type="text" id="acompanhante-nome" placeholder="Nome">
             <label for="acompanhante-parentesco" style="margin-top:8px">Grau de parentesco <span class="obrigatorio">*</span></label>
-            <input type="text" id="acompanhante-parentesco" placeholder="Ex: filha, mae, esposo">
+            <input type="text" id="acompanhante-parentesco" placeholder="Ex: filha, mãe, esposo">
           </div>
 
           <div class="campo">
-            <label for="obs-apresenta">Observacoes adicionais</label>
-            <textarea id="obs-apresenta" rows="3" placeholder="Ex: apresenta hematomas devido a puncoes anteriores em MSD"></textarea>
+            <label for="obs-apresenta">Observações adicionais</label>
+            <textarea id="obs-apresenta" rows="3" placeholder="Ex: apresenta hematomas devido a punções anteriores em MSD"></textarea>
           </div>
 
           <div class="erro-msg" id="erro-bloco2"></div>
           <div class="btn-row">
             <button type="button" class="btn-prev" data-prev="1">Voltar</button>
-            <button type="button" class="btn-next" data-next="3">Proximo</button>
+            <button type="button" class="btn-next" data-next="3">Próximo</button>
           </div>
         </section>
 
         <!-- BLOCO 3 - MANTEM -->
         <section class="bloco" id="bloco-3" data-bloco="3">
-          <h2>Mantem (Dispositivos)</h2>
+          <h2>Mantém (Dispositivos)</h2>
           <p class="hint">Adicione cada dispositivo de cima para baixo do corpo. Descreva completo (nome + detalhes).</p>
 
           <div id="dispositivos-lista" class="dispositivos-lista"></div>
 
           <div class="campo">
             <label for="dispositivo-input">Novo dispositivo</label>
-            <textarea id="dispositivo-input" rows="3" placeholder="Ex: AVP em MSE, recebendo SF 0,9% 100ml a 20ml/h em BIC, ocluido"></textarea>
+            <textarea id="dispositivo-input" rows="3" placeholder="Ex: AVP em MSE, recebendo SF 0,9% 100ml a 20ml/h em BIC, ocluído"></textarea>
           </div>
           <button type="button" class="btn-add" id="btn-add-dispositivo">Adicionar</button>
 
           <div class="erro-msg" id="erro-bloco3"></div>
           <div class="btn-row">
             <button type="button" class="btn-prev" data-prev="2">Voltar</button>
-            <button type="button" class="btn-next" data-next="4">Proximo</button>
+            <button type="button" class="btn-next" data-next="4">Próximo</button>
           </div>
         </section>
 
@@ -192,8 +192,8 @@
           <h2>Refere</h2>
 
           <div class="campo">
-            <label for="evacuacao">Ultima evacuacao <span class="obrigatorio">*</span></label>
-            <input type="text" id="evacuacao" placeholder="Ex: ontem (06/03), hoje de manha, ha 3 dias">
+            <label for="evacuacao">Última evacuação <span class="obrigatorio">*</span></label>
+            <input type="text" id="evacuacao" placeholder="Ex: ontem (06/03), hoje de manhã, há 3 dias">
           </div>
 
           <div class="campo">
@@ -203,24 +203,24 @@
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="comadre"><span>Comadre</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="banheiro"><span>Banheiro</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="SVD"><span>SVD</span></label>
-              <label class="checkbox-label"><input type="checkbox" name="diurese" value="nao avaliado"><span>Nao avaliado</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="não avaliado"><span>Não avaliado</span></label>
             </div>
           </div>
 
           <div class="campo condicional" id="svd-container" style="display:none">
-            <label for="svd-debito">Debito atual <span class="obrigatorio">*</span></label>
+            <label for="svd-debito">Débito atual <span class="obrigatorio">*</span></label>
             <input type="text" id="svd-debito" placeholder="Ex: 200ml">
           </div>
 
           <div class="campo">
             <label for="queixas">Outras queixas</label>
-            <textarea id="queixas" rows="3" placeholder="Queixas relatadas pelo paciente (deixe em branco se nao houver)"></textarea>
+            <textarea id="queixas" rows="3" placeholder="Queixas relatadas pelo paciente (deixe em branco se não houver)"></textarea>
           </div>
 
           <div class="erro-msg" id="erro-bloco4"></div>
           <div class="btn-row">
             <button type="button" class="btn-prev" data-prev="3">Voltar</button>
-            <button type="button" class="btn-next" data-next="5">Proximo</button>
+            <button type="button" class="btn-next" data-next="5">Próximo</button>
           </div>
         </section>
 
@@ -233,7 +233,7 @@
           <div class="erro-msg" id="erro-bloco5"></div>
           <div class="btn-row">
             <button type="button" class="btn-prev" data-prev="4">Voltar</button>
-            <button type="button" class="btn-next btn-gerar" id="btn-gerar">Gerar Anotacao</button>
+            <button type="button" class="btn-next btn-gerar" id="btn-gerar">Gerar Anotação</button>
           </div>
         </section>
       </div>
@@ -242,17 +242,17 @@
     <!-- PREVIEW -->
     <section id="preview-screen" class="screen" style="display:none">
       <header class="preview-header">
-        <h2>Anotacao Gerada</h2>
+        <h2>Anotação Gerada</h2>
       </header>
       <div id="preview-text" class="preview-text"></div>
       <div class="campo" style="margin-bottom:16px">
-        <label for="nome-paciente">Nome do paciente (para identificar no historico)</label>
+        <label for="nome-paciente">Nome do paciente (para identificar no histórico)</label>
         <input type="text" id="nome-paciente" placeholder="Ex: Maria Silva - Leito 4B">
       </div>
       <div class="preview-actions">
         <button type="button" class="btn-action" id="btn-copiar">Copiar texto</button>
         <button type="button" class="btn-action btn-secondary" id="btn-salvar">Salvar</button>
-        <button type="button" class="btn-action btn-outline" id="btn-nova">Nova anotacao</button>
+        <button type="button" class="btn-action btn-outline" id="btn-nova">Nova anotação</button>
       </div>
       <div id="toast" class="toast"></div>
     </section>
@@ -263,7 +263,7 @@
         <button type="button" id="btn-voltar-historico" aria-label="Voltar">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Historico</h2>
+        <h2>Histórico</h2>
       </header>
       <div id="historico-lista" class="historico-lista"></div>
     </section>
@@ -272,7 +272,7 @@
     <div id="modal-overlay" class="modal-overlay" style="display:none">
       <div class="modal">
         <div class="modal-header">
-          <h3 id="modal-title">Anotacao</h3>
+          <h3 id="modal-title">Anotação</h3>
           <button type="button" id="modal-close" class="modal-close">&times;</button>
         </div>
         <div id="modal-text" class="modal-text"></div>

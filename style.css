@@ -112,9 +112,8 @@ body {
 }
 
 .bloco {
-  min-width: 100vw;
-  padding: 20px 16px 100px;
   flex-shrink: 0;
+  padding: 20px 16px 100px;
 }
 
 .bloco h2 {

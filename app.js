@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHistorico();
   setupModal();
   updateBlocoView();
+
+  window.addEventListener('resize', () => updateBlocoView());
 });
 
 // ===== NAVIGATION =====
@@ -75,8 +77,10 @@ function goToBloco(num) {
 }
 
 function updateBlocoView() {
-  const offset = (state.blocoAtual - 1) * -100;
-  els.wrapper.style.transform = `translateX(${offset}vw)`;
+  const width = els.main.offsetWidth;
+  $$('.bloco').forEach(b => { b.style.width = width + 'px'; });
+  const offset = (state.blocoAtual - 1) * -width;
+  els.wrapper.style.transform = `translateX(${offset}px)`;
   els.progressLabel.textContent = `Bloco ${state.blocoAtual} de 5`;
   els.progressFill.style.width = `${state.blocoAtual * 20}%`;
 
@@ -99,8 +103,8 @@ function setupConditionals() {
   $$('input[name="deambulacao"]').forEach(radio => {
     radio.addEventListener('change', () => {
       const container = $('#deambula-auxilio-container');
-      container.style.display = radio.value === 'deambula com auxilio' ? 'block' : 'none';
-      if (radio.value !== 'deambula com auxilio') {
+      container.style.display = radio.value === 'deambula com auxílio' ? 'block' : 'none';
+      if (radio.value !== 'deambula com auxílio') {
         $('#deambula-auxilio').value = '';
       }
     });
@@ -110,7 +114,7 @@ function setupConditionals() {
   $$('input[name="respiracao"]').forEach(radio => {
     radio.addEventListener('change', () => {
       const container = $('#oxigenio-container');
-      const needsO2 = radio.value === 'cateter nasal de O2' || radio.value === 'mascara de O2';
+      const needsO2 = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
       container.style.display = needsO2 ? 'block' : 'none';
       if (!needsO2) {
         $('#oxigenio-litros').value = '';
@@ -293,7 +297,7 @@ function validateBloco1() {
   const erros = [];
   const horario = $('#horario');
   if (!horario.value) {
-    erros.push('Horario e obrigatorio');
+    erros.push('Horário é obrigatório');
     horario.closest('.campo').classList.add('invalido');
   }
 
@@ -322,23 +326,23 @@ function validateBloco2() {
 
   // Colaboracao
   if (!getRadioValue('colaboracao')) {
-    erros.push('Selecione colaboracao');
+    erros.push('Selecione colaboração');
   }
 
   // Deambulacao
   const deamb = getRadioValue('deambulacao');
   if (!deamb) {
-    erros.push('Selecione deambulacao');
-  } else if (deamb === 'deambula com auxilio' && !$('#deambula-auxilio').value.trim()) {
-    erros.push('Especifique o tipo de auxilio');
+    erros.push('Selecione deambulação');
+  } else if (deamb === 'deambula com auxílio' && !$('#deambula-auxilio').value.trim()) {
+    erros.push('Especifique o tipo de auxílio');
     $('#deambula-auxilio').closest('.campo').classList.add('invalido');
   }
 
   // Respiracao
   const resp = getRadioValue('respiracao');
   if (!resp) {
-    erros.push('Selecione respiracao');
-  } else if ((resp === 'cateter nasal de O2' || resp === 'mascara de O2') && !$('#oxigenio-litros').value) {
+    erros.push('Selecione respiração');
+  } else if ((resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') && !$('#oxigenio-litros').value) {
     erros.push('Informe os litros por minuto');
     $('#oxigenio-litros').closest('.campo').classList.add('invalido');
   }
@@ -369,15 +373,15 @@ function validateBloco4() {
   const erros = [];
 
   if (!$('#evacuacao').value.trim()) {
-    erros.push('Informe a ultima evacuacao');
+    erros.push('Informe a última evacuação');
     $('#evacuacao').closest('.campo').classList.add('invalido');
   }
 
   const diureseChecked = getCheckedValues('diurese');
   if (diureseChecked.length === 0) {
-    erros.push('Selecione ao menos uma opcao de diurese');
+    erros.push('Selecione ao menos uma opção de diurese');
   } else if (diureseChecked.includes('SVD') && !$('#svd-debito').value.trim()) {
-    erros.push('Informe o debito da SVD');
+    erros.push('Informe o débito da SVD');
     $('#svd-debito').closest('.campo').classList.add('invalido');
   }
 
@@ -423,10 +427,10 @@ function gerarTexto() {
 
   // Deambulacao — "nao deambula" omite do texto
   const deamb = getRadioValue('deambulacao');
-  if (deamb === 'deambula com auxilio') {
+  if (deamb === 'deambula com auxílio') {
     const auxilio = $('#deambula-auxilio').value.trim();
-    apresentaParts.push(`deambula com aux\u00edlio de ${auxilio}`);
-  } else if (deamb === 'nao deambula') {
+    apresentaParts.push(`deambula com auxílio de ${auxilio}`);
+  } else if (deamb === 'não deambula') {
     // omite do texto
   } else {
     apresentaParts.push(deamb);
@@ -434,7 +438,7 @@ function gerarTexto() {
 
   // Respiracao
   const resp = getRadioValue('respiracao');
-  if (resp === 'cateter nasal de O2' || resp === 'mascara de O2') {
+  if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
     const litros = $('#oxigenio-litros').value;
     apresentaParts.push(`em ${resp} a ${litros}L/min`);
   } else {
@@ -481,7 +485,7 @@ function gerarTexto() {
   refereParts.push(`Refere \u00faltima evacua\u00e7\u00e3o a ${evacuacao}`);
 
   const diureseVals = getCheckedValues('diurese');
-  if (diureseVals.includes('nao avaliado')) {
+  if (diureseVals.includes('não avaliado')) {
     refereParts.push('diurese n\u00e3o avaliada');
   } else {
     const diuTexts = diureseVals.map(d => {
@@ -531,7 +535,7 @@ function setupPreview() {
   $('#btn-salvar').addEventListener('click', () => {
     const nomePaciente = $('#nome-paciente').value.trim();
     salvarAnotacao(els.previewText.textContent, nomePaciente);
-    showToast('Anotacao salva!');
+    showToast('Anotação salva!');
   });
 
   $('#btn-nova').addEventListener('click', () => {
@@ -579,7 +583,7 @@ function renderHistorico() {
   const anotacoes = getAnotacoes();
 
   if (anotacoes.length === 0) {
-    lista.innerHTML = '<div class="historico-vazio">Nenhuma anotacao salva ainda</div>';
+    lista.innerHTML = '<div class="historico-vazio">Nenhuma anotação salva ainda</div>';
     return;
   }
 
@@ -626,11 +630,11 @@ function setupModal() {
 
   $('#modal-deletar').addEventListener('click', () => {
     if (currentModalAnot) {
-      showConfirm('Tem certeza que deseja deletar esta anotacao?', () => {
+      showConfirm('Tem certeza que deseja deletar esta anotação?', () => {
         deletarAnotacao(currentModalAnot.timestamp);
         closeModal();
         renderHistorico();
-        showToast('Anotacao deletada');
+        showToast('Anotação deletada');
       });
     }
   });
@@ -640,7 +644,7 @@ function setupModal() {
 
 function openModal(anot) {
   currentModalAnot = anot;
-  $('#modal-title').textContent = anot.nome || 'Anotacao';
+  $('#modal-title').textContent = anot.nome || 'Anotação';
   els.modalText.textContent = anot.texto;
   els.modalOverlay.style.display = 'flex';
 }
