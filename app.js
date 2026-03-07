@@ -70,6 +70,7 @@ function setupNavigation() {
 function goToBloco(num) {
   state.blocoAtual = num;
   updateBlocoView();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (num === 5) {
     updateFechamentoPreview();
@@ -83,12 +84,17 @@ function updateBlocoView() {
   els.wrapper.style.transform = `translateX(${offset}px)`;
   els.progressLabel.textContent = `Bloco ${state.blocoAtual} de 5`;
   els.progressFill.style.width = `${state.blocoAtual * 20}%`;
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ===== CONDITIONALS =====
 function setupConditionals() {
+  // Sexo do paciente — atualiza labels com genero
+  $$('input[name="sexo"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      updateGenderLabels(radio.value);
+    });
+  });
+
   // Estado mental
   const mentalCheck = $('#mental-alterado');
   const mentalContainer = $('#mental-desc-container');
@@ -145,6 +151,18 @@ function setupConditionals() {
       }
     });
   });
+}
+
+function updateGenderLabels(gender) {
+  const attr = gender === 'M' ? 'm' : 'f';
+  $$('[data-f-value]').forEach(radio => {
+    radio.value = radio.dataset[attr + 'Value'];
+    radio.nextElementSibling.textContent = radio.dataset[attr + 'Label'];
+  });
+}
+
+function getGenero() {
+  return getRadioValue('sexo') || 'F';
 }
 
 // ===== DISPOSITIVOS =====
@@ -295,6 +313,11 @@ function validateBloco(num) {
 
 function validateBloco1() {
   const erros = [];
+
+  if (!getRadioValue('sexo')) {
+    erros.push('Selecione o sexo do paciente');
+  }
+
   const horario = $('#horario');
   if (!horario.value) {
     erros.push('Horário é obrigatório');
@@ -450,7 +473,8 @@ function gerarTexto() {
   if (acomp === 'sim') {
     const nome = $('#acompanhante-nome').value.trim();
     const parentesco = $('#acompanhante-parentesco').value.trim();
-    apresentaParts.push(`acompanhada de sua ${parentesco} ${nome}`);
+    const acompGen = getGenero() === 'M' ? 'acompanhado' : 'acompanhada';
+    apresentaParts.push(`${acompGen} de ${parentesco} ${nome}`);
   }
 
   // Capitalize first letter (after period it starts a new sentence)
