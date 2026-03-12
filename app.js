@@ -24,7 +24,8 @@ const els = {
   confirmOverlay: $('#confirm-overlay'),
   confirmMsg: $('#confirm-msg'),
   dispositivosLista: $('#dispositivos-lista'),
-  fechamentoPreview: $('#fechamento-preview')
+  fechamentoPreview: $('#fechamento-preview'),
+  svScreen: $('#sv-screen')
 };
 
 // ===== INIT =====
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPreview();
   setupHistorico();
   setupModal();
+  setupSV();
   updateBlocoView();
 
   window.addEventListener('resize', () => updateBlocoView());
@@ -1224,6 +1226,158 @@ function resetForm() {
   state.blocoAtual = 1;
   showForm();
   updateBlocoView();
+}
+
+// ===== SINAIS VITAIS =====
+function setupSV() {
+  // Abrir tela SV
+  $('#btn-sv').addEventListener('click', () => {
+    showSV();
+  });
+
+  // Voltar
+  $('#btn-voltar-sv').addEventListener('click', () => {
+    hideSV();
+  });
+
+  // Algias: mostrar campo de dor
+  $$('input[name="sv-algias"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const dorContainer = $('#sv-dor-container');
+      dorContainer.style.display = r.value === 'refere' ? 'block' : 'none';
+      if (r.value !== 'refere') $('#sv-dor-desc').value = '';
+    });
+  });
+
+  // Gerar
+  $('#btn-gerar-sv').addEventListener('click', () => {
+    const texto = gerarTextoSV();
+    if (!texto) return;
+    mostrarPreviewSV(texto);
+  });
+}
+
+function showSV() {
+  els.svScreen.style.display = 'block';
+  els.header.style.display = 'none';
+  els.main.style.display = 'none';
+  if (els.previewScreen) els.previewScreen.style.display = 'none';
+  if (els.historicoScreen) els.historicoScreen.style.display = 'none';
+  window.scrollTo({ top: 0 });
+}
+
+function hideSV() {
+  els.svScreen.style.display = 'none';
+  els.header.style.display = '';
+  els.main.style.display = '';
+  // Limpar preview SV se existir
+  const svPreview = $('#sv-preview-area');
+  if (svPreview) svPreview.style.display = 'none';
+  $('#sv-erro').textContent = '';
+}
+
+function gerarTextoSV() {
+  const erro = (msg) => { $('#sv-erro').textContent = msg; return null; };
+  $('#sv-erro').textContent = '';
+
+  const horario = $('#sv-horario').value;
+  if (!horario) return erro('Informe o horário');
+
+  const h = formatHorario(horario);
+
+  // Coletar sinais
+  const paSis  = $('#sv-pa-sis').value.trim();
+  const paDia  = $('#sv-pa-dia').value.trim();
+  const pam    = $('#sv-pam').value.trim();
+  const fc     = $('#sv-fc').value.trim();
+  const fr     = $('#sv-fr').value.trim();
+  const temp   = $('#sv-temp').value.trim();
+  const sat    = $('#sv-sat').value.trim();
+  const dextro = $('#sv-dextro').value.trim();
+
+  // Algias
+  const algiasVal = getRadioValue('sv-algias');
+  let algiasText  = '';
+  if (algiasVal === 'nega') {
+    algiasText = ', nega algias';
+  } else if (algiasVal === 'refere') {
+    const desc = $('#sv-dor-desc').value.trim();
+    if (!desc) return erro('Descreva a dor do paciente');
+    algiasText = `, refere ${desc}`;
+  }
+
+  // Montar início
+  let texto = `${h} \u2013 Realizado aferição de sinais vitais${algiasText}.`;
+
+  // Sinais vitais
+  const sv = [];
+  if (paSis && paDia) sv.push(`PA ${paSis}/${paDia}mmHg`);
+  if (pam)            sv.push(`PAM ${pam}mmHg`);
+  if (fc)             sv.push(`FC ${fc}bpm`);
+  if (fr)             sv.push(`FR ${fr}rpm`);
+  if (temp)           sv.push(`T ${temp}°C`);
+  if (sat)            sv.push(`SAT ${sat}%`);
+  if (dextro)         sv.push(`Dextro ${dextro}mg/dL`);
+
+  if (sv.length > 0) {
+    texto += ` ${sv.join(', ')}.`;
+  }
+
+  return texto;
+}
+
+function mostrarPreviewSV(texto) {
+  // Verifica se já existe uma área de preview dentro do sv-screen
+  let svPreview = $('#sv-preview-area');
+  if (!svPreview) {
+    svPreview = document.createElement('div');
+    svPreview.id = 'sv-preview-area';
+    svPreview.innerHTML = `
+      <div class="sv-preview-text" id="sv-preview-text"></div>
+      <div class="campo" style="margin-bottom:16px">
+        <label for="sv-nome-paciente">Nome do paciente (para identificar no histórico)</label>
+        <input type="text" id="sv-nome-paciente" placeholder="Ex: João Silva - Leito 2A">
+      </div>
+      <div class="preview-actions">
+        <button type="button" class="btn-action" id="sv-btn-copiar">Copiar texto</button>
+        <button type="button" class="btn-action btn-secondary" id="sv-btn-salvar">Salvar</button>
+        <button type="button" class="btn-action btn-outline" id="sv-btn-nova">Nova aferição</button>
+      </div>
+    `;
+    document.querySelector('.sv-form').after(svPreview);
+
+    $('#sv-btn-copiar').addEventListener('click', () => {
+      navigator.clipboard.writeText($('#sv-preview-text').textContent).then(() => showToast('Copiado!'));
+    });
+
+    $('#sv-btn-salvar').addEventListener('click', () => {
+      const t = $('#sv-preview-text').textContent;
+      const nome = $('#sv-nome-paciente').value.trim() || 'Sinais Vitais';
+      const anotacoes = JSON.parse(localStorage.getItem('anotacoes_hc') || '[]');
+      anotacoes.unshift({ texto: t, nome, data: new Date().toISOString() });
+      localStorage.setItem('anotacoes_hc', JSON.stringify(anotacoes));
+      showToast('Salvo!');
+    });
+
+    $('#sv-btn-nova').addEventListener('click', () => {
+      svPreview.style.display = 'none';
+      document.querySelector('.sv-form').style.display = '';
+      // Limpar campos
+      ['sv-horario','sv-pa-sis','sv-pa-dia','sv-pam','sv-fc','sv-fr','sv-temp','sv-sat','sv-dextro','sv-dor-desc'].forEach(id => {
+        const el = $(`#${id}`);
+        if (el) el.value = '';
+      });
+      $$('input[name="sv-algias"]').forEach(r => r.checked = false);
+      $('#sv-dor-container').style.display = 'none';
+      $('#sv-erro').textContent = '';
+      window.scrollTo({ top: 0 });
+    });
+  }
+
+  $('#sv-preview-text').textContent = texto;
+  svPreview.style.display = 'block';
+  document.querySelector('.sv-form').style.display = 'none';
+  window.scrollTo({ top: 0 });
 }
 
 // ===== HELPERS =====

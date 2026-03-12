@@ -61,7 +61,13 @@ body {
   color: var(--blue-light);
 }
 
-#btn-historico {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#btn-historico, #btn-sv {
   background: none;
   border: none;
   color: var(--text-dim);
@@ -69,9 +75,16 @@ body {
   padding: 8px;
   border-radius: 8px;
   transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#btn-historico:active {
+#btn-sv {
+  color: var(--blue-light);
+}
+
+#btn-historico:active, #btn-sv:active {
   background: var(--bg-hover);
 }
 
@@ -803,4 +816,90 @@ textarea {
   margin-top: 12px;
   margin-bottom: 6px;
   display: block;
+}
+
+/* ===== SINAIS VITAIS ===== */
+.sv-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.sv-header button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.sv-header button:active {
+  background: var(--bg-hover);
+}
+
+.sv-header h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--blue-light);
+}
+
+.sv-form {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sv-unit {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.sv-opcional {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.sv-pa-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sv-pa-row input {
+  flex: 1;
+}
+
+.sv-slash {
+  color: var(--text-dim);
+  font-size: 1.4rem;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+/* Preview SV */
+.sv-preview-text {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 20px;
 }

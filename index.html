@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=10">
 </head>
 <body>
   <div id="app">
@@ -19,9 +19,14 @@
     <header id="header">
       <div class="header-top">
         <h1>Anotação</h1>
-        <button id="btn-historico" type="button" aria-label="Histórico">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </button>
+        <div class="header-actions">
+          <button id="btn-sv" type="button" aria-label="Sinais Vitais" title="Sinais Vitais">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </button>
+          <button id="btn-historico" type="button" aria-label="Histórico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </button>
+        </div>
       </div>
       <div id="progress-bar-container">
         <div id="progress-label">Bloco 1 de 5</div>
@@ -279,6 +284,78 @@
         <h2>Histórico</h2>
       </header>
       <div id="historico-lista" class="historico-lista"></div>
+    </section>
+
+    <!-- SINAIS VITAIS -->
+    <section id="sv-screen" class="screen" style="display:none">
+      <header class="sv-header">
+        <button type="button" id="btn-voltar-sv" aria-label="Voltar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2>Sinais Vitais</h2>
+      </header>
+
+      <div class="sv-form">
+        <div class="campo">
+          <label for="sv-horario">Horário <span class="obrigatorio">*</span></label>
+          <input type="time" id="sv-horario">
+        </div>
+
+        <div class="campo">
+          <label>PA <span class="sv-unit">mmHg</span></label>
+          <div class="sv-pa-row">
+            <input type="number" id="sv-pa-sis" placeholder="120" min="0" max="300">
+            <span class="sv-slash">/</span>
+            <input type="number" id="sv-pa-dia" placeholder="80" min="0" max="200">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="sv-pam">PAM <span class="sv-unit">mmHg</span></label>
+          <input type="number" id="sv-pam" placeholder="87" min="0" max="200">
+        </div>
+
+        <div class="campo">
+          <label for="sv-fc">FC <span class="sv-unit">bpm</span></label>
+          <input type="number" id="sv-fc" placeholder="98" min="0" max="300">
+        </div>
+
+        <div class="campo">
+          <label for="sv-fr">FR <span class="sv-unit">rpm</span></label>
+          <input type="number" id="sv-fr" placeholder="17" min="0" max="60">
+        </div>
+
+        <div class="campo">
+          <label for="sv-temp">T <span class="sv-unit">°C</span></label>
+          <input type="number" id="sv-temp" placeholder="36.7" step="0.1" min="30" max="45">
+        </div>
+
+        <div class="campo">
+          <label for="sv-sat">SAT O₂ <span class="sv-unit">%</span></label>
+          <input type="number" id="sv-sat" placeholder="95" min="0" max="100">
+        </div>
+
+        <div class="campo">
+          <label for="sv-dextro">Dextro <span class="sv-unit">mg/dL</span> <span class="sv-opcional">(opcional)</span></label>
+          <input type="number" id="sv-dextro" placeholder="120" min="0" max="600">
+        </div>
+
+        <div class="campo">
+          <label>Algias</label>
+          <div class="radio-group vertical">
+            <label class="radio-btn"><input type="radio" name="sv-algias" value="nega"><span>Nega algias</span></label>
+            <label class="radio-btn"><input type="radio" name="sv-algias" value="refere"><span>Refere dor</span></label>
+          </div>
+        </div>
+
+        <div class="campo condicional" id="sv-dor-container" style="display:none">
+          <label for="sv-dor-desc">Descreva a dor <span class="obrigatorio">*</span></label>
+          <input type="text" id="sv-dor-desc" placeholder="Ex: cefaleia leve, dor em MMII">
+        </div>
+
+        <div class="erro-msg" id="sv-erro"></div>
+        <button type="button" id="btn-gerar-sv" class="btn-next">Gerar Anotação</button>
+      </div>
     </section>
 
     <!-- MODAL -->
