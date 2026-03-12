@@ -1270,9 +1270,11 @@ function hideSV() {
   els.svScreen.style.display = 'none';
   els.header.style.display = '';
   els.main.style.display = '';
-  // Limpar preview SV se existir
+  // Restaurar form SV para próxima abertura
   const svPreview = $('#sv-preview-area');
   if (svPreview) svPreview.style.display = 'none';
+  const svForm = document.querySelector('.sv-form');
+  if (svForm) svForm.style.display = '';
   $('#sv-erro').textContent = '';
 }
 
@@ -1309,7 +1311,7 @@ function gerarTextoSV() {
   // Montar início
   let texto = `${h} \u2013 Realizado aferição de sinais vitais${algiasText}.`;
 
-  // Sinais vitais
+  // Sinais vitais — um por linha
   const sv = [];
   if (paSis && paDia) sv.push(`PA ${paSis}/${paDia}mmHg`);
   if (pam)            sv.push(`PAM ${pam}mmHg`);
@@ -1320,7 +1322,7 @@ function gerarTextoSV() {
   if (dextro)         sv.push(`Dextro ${dextro}mg/dL`);
 
   if (sv.length > 0) {
-    texto += ` ${sv.join(', ')}.`;
+    texto += '\n' + sv.join('\n');
   }
 
   return texto;
