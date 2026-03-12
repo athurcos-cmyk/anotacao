@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0A1628">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Anotação</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div class="header-top">
+        <h1>Anotação</h1>
+        <button id="btn-historico" type="button" aria-label="Histórico">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </button>
+      </div>
+      <div id="progress-bar-container">
+        <div id="progress-label">Bloco 1 de 5</div>
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill" style="width:20%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main">
+      <div id="blocos-wrapper">
+
+        <!-- BLOCO 1 - ABERTURA -->
+        <section class="bloco" id="bloco-1" data-bloco="1">
+          <h2>Abertura</h2>
+
+          <div class="campo">
+            <label>Sexo do paciente <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="sexo" value="F" required><span>Feminino</span></label>
+              <label class="radio-btn"><input type="radio" name="sexo" value="M"><span>Masculino</span></label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="horario">Horário <span class="obrigatorio">*</span></label>
+            <input type="time" id="horario" required>
+          </div>
+
+          <div class="campo">
+            <label>Posição da cama <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="posicao-cama" value="baixa" required><span>Baixa</span></label>
+              <label class="radio-btn"><input type="radio" name="posicao-cama" value="média"><span>Média</span></label>
+              <label class="radio-btn"><input type="radio" name="posicao-cama" value="alta"><span>Alta</span></label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Rodas <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="rodas" value="travadas" required><span>Travadas</span></label>
+              <label class="radio-btn"><input type="radio" name="rodas" value="soltas"><span>Soltas</span></label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Grades <span class="obrigatorio">*</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-btn"><input type="radio" name="grades" value="totalmente elevadas" required><span>Totalmente elevadas</span></label>
+              <label class="radio-btn"><input type="radio" name="grades" value="parcialmente elevadas"><span>Parcialmente elevadas</span></label>
+              <label class="radio-btn"><input type="radio" name="grades" value="abaixadas"><span>Abaixadas</span></label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Decúbito <span class="obrigatorio">*</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-btn"><input type="radio" name="decubito" value="parcialmente elevado" required><span>Parcialmente elevado</span></label>
+              <label class="radio-btn"><input type="radio" name="decubito" value="dorsal"><span>Dorsal</span></label>
+              <label class="radio-btn"><input type="radio" name="decubito" value="lateral direito"><span>Lateral direito</span></label>
+              <label class="radio-btn"><input type="radio" name="decubito" value="lateral esquerdo"><span>Lateral esquerdo</span></label>
+              <label class="radio-btn"><input type="radio" name="decubito" value="Fowler"><span>Fowler</span></label>
+            </div>
+          </div>
+
+          <div class="erro-msg" id="erro-bloco1"></div>
+          <button type="button" class="btn-next" data-next="2">Próximo</button>
+        </section>
+
+        <!-- BLOCO 2 - APRESENTA -->
+        <section class="bloco" id="bloco-2" data-bloco="2">
+          <h2>Apresenta</h2>
+
+          <div class="campo">
+            <label class="checkbox-label">
+              <input type="checkbox" id="mental-alterado">
+              <span>Estado mental alterado?</span>
+            </label>
+          </div>
+
+          <div class="campo condicional" id="mental-desc-container" style="display:none">
+            <label for="mental-desc">Descreva o que observou <span class="obrigatorio">*</span></label>
+            <textarea id="mental-desc" rows="3" placeholder="Ex: confusa, com discurso desconexo, falando sozinha, desorientada em tempo mas reconhece o ambiente"></textarea>
+          </div>
+
+          <div class="campo">
+            <label>Colaboração <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="colaboracao" value="sendo colaborativa" required data-f-value="sendo colaborativa" data-m-value="sendo colaborativo" data-f-label="Colaborativa" data-m-label="Colaborativo"><span>Colaborativa</span></label>
+              <label class="radio-btn"><input type="radio" name="colaboracao" value="não sendo colaborativa com os cuidados" data-f-value="não sendo colaborativa com os cuidados" data-m-value="não sendo colaborativo com os cuidados" data-f-label="Não colaborativa" data-m-label="Não colaborativo"><span>Não colaborativa</span></label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Deambulação <span class="obrigatorio">*</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="deambula sozinha" required data-f-value="deambula sozinha" data-m-value="deambula sozinho" data-f-label="Deambula sozinha" data-m-label="Deambula sozinho"><span>Deambula sozinha</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="deambula com auxílio"><span>Deambula com auxílio</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="não deambula"><span>Não deambula</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="acamada no momento" data-f-value="acamada no momento" data-m-value="acamado no momento" data-f-label="Acamada no momento" data-m-label="Acamado no momento"><span>Acamada no momento</span></label>
+              <label class="radio-btn"><input type="radio" name="deambulacao" value="restrita ao leito" data-f-value="restrita ao leito" data-m-value="restrito ao leito" data-f-label="Restrita ao leito (100% acamada)" data-m-label="Restrito ao leito (100% acamado)"><span>Restrita ao leito (100% acamada)</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="deambula-auxilio-container" style="display:none">
+            <label for="deambula-auxilio">Especifique o auxílio <span class="obrigatorio">*</span></label>
+            <input type="text" id="deambula-auxilio" placeholder="Ex: bengala, andador, cadeira de rodas, apoio de um profissional">
+          </div>
+
+          <div class="campo">
+            <label>Respiração <span class="obrigatorio">*</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-btn"><input type="radio" name="respiracao" value="eupneica em ar ambiente" required><span>Eupneica em ar ambiente</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="cateter nasal de O₂"><span>Cateter nasal de O₂</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="máscara de O₂"><span>Máscara de O₂</span></label>
+              <label class="radio-btn"><input type="radio" name="respiracao" value="ventilação mecânica"><span>Ventilação mecânica</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="oxigenio-container" style="display:none">
+            <label for="oxigenio-litros">Litros por minuto <span class="obrigatorio">*</span></label>
+            <input type="number" id="oxigenio-litros" min="1" max="15" placeholder="L/min">
+          </div>
+
+          <div class="campo">
+            <label>Acompanhante <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="acompanhante" value="sim" required><span>Sim</span></label>
+              <label class="radio-btn"><input type="radio" name="acompanhante" value="nao"><span>Não</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="acompanhante-container" style="display:none">
+            <label for="acompanhante-nome">Nome do acompanhante <span class="obrigatorio">*</span></label>
+            <input type="text" id="acompanhante-nome" placeholder="Nome">
+            <label for="acompanhante-parentesco" style="margin-top:8px">Grau de parentesco <span class="obrigatorio">*</span></label>
+            <input type="text" id="acompanhante-parentesco" placeholder="Ex: filha, mãe, esposo">
+          </div>
+
+          <div class="campo">
+            <label for="obs-apresenta">Observações adicionais</label>
+            <textarea id="obs-apresenta" rows="3" placeholder="Ex: apresenta hematomas devido a punções anteriores em MSD"></textarea>
+          </div>
+
+          <div class="erro-msg" id="erro-bloco2"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-prev" data-prev="1">Voltar</button>
+            <button type="button" class="btn-next" data-next="3">Próximo</button>
+          </div>
+        </section>
+
+        <!-- BLOCO 3 - MANTEM -->
+        <section class="bloco" id="bloco-3" data-bloco="3">
+          <h2>Mantém (Dispositivos)</h2>
+          <p class="hint">Adicione cada dispositivo de cima para baixo do corpo. Descreva completo (nome + detalhes).</p>
+
+          <div id="dispositivos-lista" class="dispositivos-lista"></div>
+
+          <div class="campo">
+            <label for="dispositivo-input">Novo dispositivo</label>
+            <textarea id="dispositivo-input" rows="3" placeholder="Ex: AVP em MSE, recebendo SF 0,9% 100ml a 20ml/h em BIC, ocluído"></textarea>
+          </div>
+          <button type="button" class="btn-add" id="btn-add-dispositivo">Adicionar</button>
+
+          <div class="erro-msg" id="erro-bloco3"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-prev" data-prev="2">Voltar</button>
+            <button type="button" class="btn-next" data-next="4">Próximo</button>
+          </div>
+        </section>
+
+        <!-- BLOCO 4 - REFERE -->
+        <section class="bloco" id="bloco-4" data-bloco="4">
+          <h2>Refere</h2>
+
+          <div class="campo">
+            <label for="evacuacao">Última evacuação <span class="obrigatorio">*</span></label>
+            <input type="text" id="evacuacao" placeholder="Ex: ontem (06/03), hoje de manhã, há 3 dias">
+          </div>
+
+          <div class="campo">
+            <label>Diurese <span class="obrigatorio">*</span> <span class="hint-inline">(pode marcar mais de uma)</span></label>
+            <div class="radio-group vertical">
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="fralda"><span>Fralda</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="comadre"><span>Comadre</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="banheiro"><span>Banheiro</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="SVD"><span>SVD</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="não avaliado"><span>Não avaliado</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="svd-container" style="display:none">
+            <label for="svd-debito">Débito atual <span class="obrigatorio">*</span></label>
+            <input type="text" id="svd-debito" placeholder="Ex: 200ml">
+          </div>
+
+          <div class="campo">
+            <label for="queixas">Outras queixas</label>
+            <textarea id="queixas" rows="3" placeholder="Queixas relatadas pelo paciente (deixe em branco se não houver)"></textarea>
+          </div>
+
+          <div class="erro-msg" id="erro-bloco4"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-prev" data-prev="3">Voltar</button>
+            <button type="button" class="btn-next" data-next="5">Próximo</button>
+          </div>
+        </section>
+
+        <!-- BLOCO 5 - FECHAMENTO -->
+        <section class="bloco" id="bloco-5" data-bloco="5">
+          <h2>Fechamento</h2>
+          <p class="hint">O fechamento espelha a abertura automaticamente.</p>
+          <div id="fechamento-preview" class="fechamento-preview"></div>
+
+          <div class="erro-msg" id="erro-bloco5"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-prev" data-prev="4">Voltar</button>
+            <button type="button" class="btn-next btn-gerar" id="btn-gerar">Gerar Anotação</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- PREVIEW -->
+    <section id="preview-screen" class="screen" style="display:none">
+      <header class="preview-header">
+        <h2>Anotação Gerada</h2>
+      </header>
+      <div id="preview-text" class="preview-text"></div>
+      <div class="campo" style="margin-bottom:16px">
+        <label for="nome-paciente">Nome do paciente (para identificar no histórico)</label>
+        <input type="text" id="nome-paciente" placeholder="Ex: Maria Silva - Leito 4B">
+      </div>
+      <div class="preview-actions">
+        <button type="button" class="btn-action" id="btn-copiar">Copiar texto</button>
+        <button type="button" class="btn-action btn-secondary" id="btn-salvar">Salvar</button>
+        <button type="button" class="btn-action btn-outline" id="btn-nova">Nova anotação</button>
+      </div>
+      <div id="toast" class="toast"></div>
+    </section>
+
+    <!-- HISTORICO -->
+    <section id="historico-screen" class="screen" style="display:none">
+      <header class="historico-header">
+        <button type="button" id="btn-voltar-historico" aria-label="Voltar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2>Histórico</h2>
+      </header>
+      <div id="historico-lista" class="historico-lista"></div>
+    </section>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="modal-overlay" style="display:none">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-title">Anotação</h3>
+          <button type="button" id="modal-close" class="modal-close">&times;</button>
+        </div>
+        <div id="modal-text" class="modal-text"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-action" id="modal-copiar">Copiar</button>
+          <button type="button" class="btn-action btn-danger" id="modal-deletar">Deletar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM DIALOG -->
+    <div id="confirm-overlay" class="modal-overlay" style="display:none">
+      <div class="modal confirm-modal">
+        <p id="confirm-msg">Tem certeza?</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-action btn-danger" id="confirm-yes">Sim, deletar</button>
+          <button type="button" class="btn-action btn-outline" id="confirm-no">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
