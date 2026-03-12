@@ -687,8 +687,9 @@ function showConfirm(msg, cb) {
 
   // Re-bind yes button
   $('#confirm-yes').onclick = () => {
+    const cb = confirmCallback;
     closeConfirm();
-    if (confirmCallback) confirmCallback();
+    if (cb) cb();
   };
 }
 
