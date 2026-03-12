@@ -166,16 +166,464 @@ function getGenero() {
 }
 
 // ===== DISPOSITIVOS =====
-function setupDispositivos() {
-  $('#btn-add-dispositivo').addEventListener('click', () => {
-    const input = $('#dispositivo-input');
-    const text = input.value.trim();
-    if (!text) return;
+let modalDispTipo = null;
 
-    state.dispositivos.push(text);
-    input.value = '';
-    renderDispositivos();
+function setupDispositivos() {
+  // Botões de tipo
+  $$('.btn-tipo').forEach(btn => {
+    btn.addEventListener('click', () => abrirModalDisp(btn.dataset.tipo));
   });
+
+  // Fechar modal
+  $('#modal-disp-fechar').addEventListener('click', fecharModalDisp);
+  $('#modal-disp').addEventListener('click', (e) => {
+    if (e.target === $('#modal-disp')) fecharModalDisp();
+  });
+
+  // Confirmar
+  $('#modal-disp-confirmar').addEventListener('click', confirmarDisp);
+}
+
+function abrirModalDisp(tipo) {
+  modalDispTipo = tipo;
+  $('#modal-disp-titulo').textContent = tipo;
+  $('#modal-disp-body').innerHTML = buildDispForm(tipo);
+  $('#modal-disp-erro').textContent = '';
+  $('#modal-disp').style.display = 'flex';
+  setupDispModalConditionals(tipo);
+}
+
+function fecharModalDisp() {
+  $('#modal-disp').style.display = 'none';
+  modalDispTipo = null;
+}
+
+function confirmarDisp() {
+  $('#modal-disp-erro').textContent = '';
+  const result = buildDispText(modalDispTipo);
+  if (!result) return;
+  state.dispositivos.push(result);
+  renderDispositivos();
+  fecharModalDisp();
+}
+
+// — Helpers do modal —
+function dRadio(name, value, label) {
+  return `<label class="radio-btn"><input type="radio" name="${name}" value="${value}"><span>${label}</span></label>`;
+}
+
+function dModalGet(selector) {
+  const el = document.querySelector(`#modal-disp-body ${selector}`);
+  return el ? el.value.trim() : '';
+}
+
+function dModalRadio(name) {
+  const el = document.querySelector(`#modal-disp-body input[name="${name}"]:checked`);
+  return el ? el.value : null;
+}
+
+function dFormatDate(str) {
+  if (!str) return '?/?';
+  const p = str.split('-');
+  return `${p[2]}/${p[1]}`;
+}
+
+function dHoje() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function infusaoFields() {
+  return `
+    <div id="d-inf" style="display:none">
+      <div class="campo">
+        <label>Solução <span class="obrigatorio">*</span></label>
+        <input type="text" id="d-sol" placeholder="Ex: SF 0,9% 500ml">
+      </div>
+      <div class="campo">
+        <label>Velocidade <span class="obrigatorio">*</span></label>
+        <div class="input-suffix-wrap">
+          <input type="number" id="d-vel" placeholder="21" min="1">
+          <span class="input-suffix">ml/h</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function dataField() {
+  return `
+    <div class="campo">
+      <label>Data <span class="obrigatorio">*</span></label>
+      <input type="date" id="d-data" value="${dHoje()}">
+    </div>`;
+}
+
+function statusSalInfFields() {
+  return `
+    <div class="campo">
+      <label>Status <span class="obrigatorio">*</span></label>
+      <div class="radio-group vertical">
+        ${dRadio('d-status', 'sal', 'Salinizado e ocluído')}
+        ${dRadio('d-status', 'inf', 'Em infusão')}
+      </div>
+    </div>
+    ${infusaoFields()}`;
+}
+
+function statusSalOclFields() {
+  return `
+    <div class="campo">
+      <label>Status <span class="obrigatorio">*</span></label>
+      <div class="radio-group vertical">
+        ${dRadio('d-status', 'sal', 'Salinizado e ocluído')}
+        ${dRadio('d-status', 'ocl', 'Ocluído (sem confirmar salinização)')}
+      </div>
+    </div>`;
+}
+
+// — Form builders —
+function buildDispForm(tipo) {
+  switch (tipo) {
+    case 'AVP': return `
+      <div class="campo">
+        <label>Membro <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${['MSE','MSD','MIE','MID'].map(m => dRadio('d-membro', m, m)).join('')}
+        </div>
+      </div>
+      ${statusSalInfFields()}
+      ${dataField()}`;
+
+    case 'CVC': return `
+      <div class="campo">
+        <label>Local <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${['subclávia D','subclávia E','jugular D','jugular E','femoral D','femoral E'].map(l => dRadio('d-local', l, l)).join('')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Lúmens <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-lumens', 'simples', 'Simples')}
+          ${dRadio('d-lumens', 'duplo', 'Duplo')}
+          ${dRadio('d-lumens', 'triplo', 'Triplo')}
+        </div>
+      </div>
+      ${statusSalInfFields()}
+      ${dataField()}`;
+
+    case 'PICC': return `
+      <div class="campo">
+        <label>Membro <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-membro', 'MSD', 'MSD')}
+          ${dRadio('d-membro', 'MSE', 'MSE')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Lúmens <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-lumens', 'mono', 'Mono')}
+          ${dRadio('d-lumens', 'duplo', 'Duplo')}
+        </div>
+      </div>
+      ${statusSalInfFields()}
+      ${dataField()}`;
+
+    case 'Permcath': return `
+      <div class="campo">
+        <label>Local <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${['subclávia D','subclávia E','jugular D','jugular E','femoral D','femoral E'].map(l => dRadio('d-local', l, l)).join('')}
+        </div>
+      </div>
+      ${statusSalOclFields()}
+      ${dataField()}`;
+
+    case 'Shilley': return `
+      <div class="campo">
+        <label>Local <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${['jugular D','jugular E','femoral D','femoral E'].map(l => dRadio('d-local', l, l)).join('')}
+        </div>
+      </div>
+      ${statusSalOclFields()}
+      ${dataField()}`;
+
+    case 'SNE': return `
+      <div class="campo">
+        <label>Narina <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-narina', 'D', 'Direita')}
+          ${dRadio('d-narina', 'E', 'Esquerda')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Marcação <span class="obrigatorio">*</span></label>
+        <input type="number" id="d-marcacao" placeholder="65" min="1">
+      </div>
+      <div class="campo">
+        <label>Status <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-status', 'aberta', 'Aberta')}
+          ${dRadio('d-status', 'fechada', 'Fechada')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Dieta enteral <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-dieta', 'sim', 'Sim')}
+          ${dRadio('d-dieta', 'nao', 'Não')}
+        </div>
+      </div>
+      <div id="d-dieta-vel" style="display:none">
+        <div class="campo">
+          <label>Velocidade <span class="obrigatorio">*</span></label>
+          <div class="input-suffix-wrap">
+            <input type="number" id="d-vel-dieta" placeholder="60" min="1">
+            <span class="input-suffix">ml/h</span>
+          </div>
+        </div>
+      </div>`;
+
+    case 'SNG': return `
+      <div class="campo">
+        <label>Narina <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${dRadio('d-narina', 'D', 'Direita')}
+          ${dRadio('d-narina', 'E', 'Esquerda')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Marcação <span class="obrigatorio">*</span></label>
+        <input type="number" id="d-marcacao" placeholder="65" min="1">
+      </div>
+      <div class="campo">
+        <label>Modo <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${dRadio('d-modo', 'aberta', 'Aberta')}
+          ${dRadio('d-modo', 'fechada', 'Fechada')}
+          ${dRadio('d-modo', 'dieta', 'Recebendo dieta enteral')}
+          ${dRadio('d-modo', 'dren', 'Em drenagem (frasco coletor)')}
+        </div>
+      </div>
+      <div id="d-sng-dieta" style="display:none">
+        <div class="campo">
+          <label>Velocidade <span class="obrigatorio">*</span></label>
+          <div class="input-suffix-wrap">
+            <input type="number" id="d-vel-dieta" placeholder="60" min="1">
+            <span class="input-suffix">ml/h</span>
+          </div>
+        </div>
+      </div>
+      <div id="d-sng-dren" style="display:none">
+        <div class="campo">
+          <label>Débito <span class="obrigatorio">*</span></label>
+          <div class="radio-group">
+            ${dRadio('d-debito', 'sem', 'Sem débito')}
+            ${dRadio('d-debito', 'com', 'Com débito')}
+          </div>
+        </div>
+        <div id="d-debito-ml" style="display:none">
+          <div class="campo">
+            <div class="input-suffix-wrap">
+              <input type="number" id="d-debito-val" placeholder="200" min="1">
+              <span class="input-suffix">ml</span>
+            </div>
+          </div>
+        </div>
+        <div class="campo">
+          <label>Aspecto <span class="obrigatorio">*</span></label>
+          <input type="text" id="d-aspecto" placeholder="Ex: amarelado, esverdeado, bilioso">
+        </div>
+      </div>`;
+
+    case 'Dreno': return `
+      <div class="campo">
+        <label>Descreva o dreno <span class="obrigatorio">*</span></label>
+        <textarea id="d-dreno" rows="4" placeholder="Ex: dreno de penrose em FID, com curativo seco"></textarea>
+      </div>`;
+
+    default: return `
+      <div class="campo">
+        <label>Dispositivo <span class="obrigatorio">*</span></label>
+        <textarea id="d-dreno" rows="3" placeholder="Descreva o dispositivo"></textarea>
+      </div>`;
+  }
+}
+
+// — Conditionals dentro do modal —
+function setupDispModalConditionals(tipo) {
+  // Status sal/inf (AVP, CVC, PICC)
+  if (['AVP','CVC','PICC'].includes(tipo)) {
+    $$('#modal-disp-body input[name="d-status"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const inf = document.querySelector('#modal-disp-body #d-inf');
+        if (inf) inf.style.display = r.value === 'inf' ? 'block' : 'none';
+      });
+    });
+  }
+
+  // SNE dieta
+  if (tipo === 'SNE') {
+    $$('#modal-disp-body input[name="d-dieta"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const vel = document.querySelector('#modal-disp-body #d-dieta-vel');
+        if (vel) vel.style.display = r.value === 'sim' ? 'block' : 'none';
+      });
+    });
+  }
+
+  // SNG modo
+  if (tipo === 'SNG') {
+    $$('#modal-disp-body input[name="d-modo"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const dieta = document.querySelector('#modal-disp-body #d-sng-dieta');
+        const dren = document.querySelector('#modal-disp-body #d-sng-dren');
+        if (dieta) dieta.style.display = r.value === 'dieta' ? 'block' : 'none';
+        if (dren) dren.style.display = r.value === 'dren' ? 'block' : 'none';
+      });
+    });
+
+    // SNG débito
+    $$('#modal-disp-body input[name="d-debito"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const ml = document.querySelector('#modal-disp-body #d-debito-ml');
+        if (ml) ml.style.display = r.value === 'com' ? 'block' : 'none';
+      });
+    });
+  }
+}
+
+// — Geração do texto —
+function buildDispText(tipo) {
+  const erro = (msg) => { $('#modal-disp-erro').textContent = msg; return null; };
+
+  switch (tipo) {
+    case 'AVP': {
+      const membro = dModalRadio('d-membro');
+      const status = dModalRadio('d-status');
+      const data = dFormatDate(dModalGet('#d-data'));
+      if (!membro) return erro('Selecione o membro');
+      if (!status) return erro('Selecione o status');
+      if (status === 'inf') {
+        const sol = dModalGet('#d-sol');
+        const vel = dModalGet('#d-vel');
+        if (!sol) return erro('Informe a solução');
+        if (!vel) return erro('Informe a velocidade');
+        return `AVP em ${membro}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+      }
+      return `AVP em ${membro}, salinizado e ocluído, datado de ${data}`;
+    }
+
+    case 'CVC': {
+      const local = dModalRadio('d-local');
+      const lumens = dModalRadio('d-lumens');
+      const status = dModalRadio('d-status');
+      const data = dFormatDate(dModalGet('#d-data'));
+      if (!local) return erro('Selecione o local');
+      if (!lumens) return erro('Selecione os lúmens');
+      if (!status) return erro('Selecione o status');
+      const base = `CVC ${lumens} lúmen em ${local}`;
+      if (status === 'inf') {
+        const sol = dModalGet('#d-sol');
+        const vel = dModalGet('#d-vel');
+        if (!sol) return erro('Informe a solução');
+        if (!vel) return erro('Informe a velocidade');
+        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+      }
+      return `${base}, salinizado e ocluído, datado de ${data}`;
+    }
+
+    case 'PICC': {
+      const membro = dModalRadio('d-membro');
+      const lumens = dModalRadio('d-lumens');
+      const status = dModalRadio('d-status');
+      const data = dFormatDate(dModalGet('#d-data'));
+      if (!membro) return erro('Selecione o membro');
+      if (!lumens) return erro('Selecione os lúmens');
+      if (!status) return erro('Selecione o status');
+      const base = `PICC ${lumens} lúmen em ${membro}`;
+      if (status === 'inf') {
+        const sol = dModalGet('#d-sol');
+        const vel = dModalGet('#d-vel');
+        if (!sol) return erro('Informe a solução');
+        if (!vel) return erro('Informe a velocidade');
+        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+      }
+      return `${base}, salinizado e ocluído, datado de ${data}`;
+    }
+
+    case 'Permcath': {
+      const local = dModalRadio('d-local');
+      const status = dModalRadio('d-status');
+      const data = dFormatDate(dModalGet('#d-data'));
+      if (!local) return erro('Selecione o local');
+      if (!status) return erro('Selecione o status');
+      const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
+      return `Permcath em ${local}, ${est}, datado de ${data}`;
+    }
+
+    case 'Shilley': {
+      const local = dModalRadio('d-local');
+      const status = dModalRadio('d-status');
+      const data = dFormatDate(dModalGet('#d-data'));
+      if (!local) return erro('Selecione o local');
+      if (!status) return erro('Selecione o status');
+      const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
+      return `Shilley em ${local}, ${est}, datado de ${data}`;
+    }
+
+    case 'SNE': {
+      const narina = dModalRadio('d-narina');
+      const marc = dModalGet('#d-marcacao');
+      const status = dModalRadio('d-status');
+      const dieta = dModalRadio('d-dieta');
+      if (!narina) return erro('Selecione a narina');
+      if (!marc) return erro('Informe a marcação');
+      if (!status) return erro('Selecione o status');
+      if (!dieta) return erro('Informe sobre dieta enteral');
+      let txt = `SNE em narina ${narina}, marcação ${marc}, ${status}`;
+      if (dieta === 'sim') {
+        const vel = dModalGet('#d-vel-dieta');
+        if (!vel) return erro('Informe a velocidade da dieta');
+        txt += `, recebendo dieta enteral a ${vel}ml/h`;
+      }
+      return txt;
+    }
+
+    case 'SNG': {
+      const narina = dModalRadio('d-narina');
+      const marc = dModalGet('#d-marcacao');
+      const modo = dModalRadio('d-modo');
+      if (!narina) return erro('Selecione a narina');
+      if (!marc) return erro('Informe a marcação');
+      if (!modo) return erro('Selecione o modo');
+      const base = `SNG em narina ${narina}, marcação ${marc}`;
+      if (modo === 'aberta') return `${base}, aberta`;
+      if (modo === 'fechada') return `${base}, fechada`;
+      if (modo === 'dieta') {
+        const vel = dModalGet('#d-vel-dieta');
+        if (!vel) return erro('Informe a velocidade da dieta');
+        return `${base}, aberta, recebendo dieta enteral a ${vel}ml/h`;
+      }
+      if (modo === 'dren') {
+        const debito = dModalRadio('d-debito');
+        const aspecto = dModalGet('#d-aspecto');
+        if (!debito) return erro('Informe o débito');
+        if (!aspecto) return erro('Informe o aspecto');
+        const debStr = debito === 'sem' ? 'sem débito' : `débito de ${dModalGet('#d-debito-val')}ml`;
+        return `${base}, aberta com frasco coletor, ${debStr}, de aspecto ${aspecto}`;
+      }
+      return null;
+    }
+
+    case 'Dreno':
+    default: {
+      const txt = dModalGet('#d-dreno');
+      if (!txt) return erro('Descreva o dispositivo');
+      return txt;
+    }
+  }
 }
 
 function renderDispositivos() {
@@ -228,13 +676,11 @@ function renderDispositivos() {
       }
     });
 
-    // Touch drag support
-    let touchStartY = 0;
+    // Touch drag
     let touchCurrentItem = null;
-
     const handle = item.querySelector('.disp-handle');
+
     handle.addEventListener('touchstart', (e) => {
-      touchStartY = e.touches[0].clientY;
       touchCurrentItem = item;
       item.classList.add('dragging');
       state.dragSrcIndex = i;
@@ -243,14 +689,9 @@ function renderDispositivos() {
     handle.addEventListener('touchmove', (e) => {
       e.preventDefault();
       const touchY = e.touches[0].clientY;
-      const items = [...$$('.dispositivo-item')];
-      items.forEach((el, idx) => {
+      [...$$('.dispositivo-item')].forEach((el, idx) => {
         const rect = el.getBoundingClientRect();
-        if (touchY > rect.top && touchY < rect.bottom && idx !== state.dragSrcIndex) {
-          el.classList.add('drag-over');
-        } else {
-          el.classList.remove('drag-over');
-        }
+        el.classList.toggle('drag-over', touchY > rect.top && touchY < rect.bottom && idx !== state.dragSrcIndex);
       });
     }, { passive: false });
 
@@ -261,15 +702,9 @@ function renderDispositivos() {
       items.forEach((el, idx) => {
         el.classList.remove('drag-over');
         const rect = el.getBoundingClientRect();
-        if (touchY > rect.top && touchY < rect.bottom) {
-          targetIndex = idx;
-        }
+        if (touchY > rect.top && touchY < rect.bottom) targetIndex = idx;
       });
-
-      if (touchCurrentItem) {
-        touchCurrentItem.classList.remove('dragging');
-      }
-
+      if (touchCurrentItem) touchCurrentItem.classList.remove('dragging');
       if (targetIndex >= 0 && targetIndex !== state.dragSrcIndex) {
         const moved = state.dispositivos.splice(state.dragSrcIndex, 1)[0];
         state.dispositivos.splice(targetIndex, 0, moved);
@@ -277,7 +712,7 @@ function renderDispositivos() {
       }
     });
 
-    // Remove button
+    // Remover
     item.querySelector('.disp-remove').addEventListener('click', () => {
       state.dispositivos.splice(i, 1);
       renderDispositivos();

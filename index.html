@@ -178,15 +178,20 @@
         <!-- BLOCO 3 - MANTEM -->
         <section class="bloco" id="bloco-3" data-bloco="3">
           <h2>Mantém (Dispositivos)</h2>
-          <p class="hint">Adicione cada dispositivo de cima para baixo do corpo. Descreva completo (nome + detalhes).</p>
+          <p class="hint">Toque no tipo de dispositivo para adicionar.</p>
+
+          <div class="dispositivos-tipos">
+            <button type="button" class="btn-tipo" data-tipo="AVP">AVP</button>
+            <button type="button" class="btn-tipo" data-tipo="CVC">CVC</button>
+            <button type="button" class="btn-tipo" data-tipo="PICC">PICC</button>
+            <button type="button" class="btn-tipo" data-tipo="Permcath">Permcath</button>
+            <button type="button" class="btn-tipo" data-tipo="Shilley">Shilley</button>
+            <button type="button" class="btn-tipo" data-tipo="SNE">SNE</button>
+            <button type="button" class="btn-tipo" data-tipo="SNG">SNG</button>
+            <button type="button" class="btn-tipo btn-tipo-outro" data-tipo="Dreno">+ Dreno / Outro</button>
+          </div>
 
           <div id="dispositivos-lista" class="dispositivos-lista"></div>
-
-          <div class="campo">
-            <label for="dispositivo-input">Novo dispositivo</label>
-            <textarea id="dispositivo-input" rows="3" placeholder="Ex: AVP em MSE, recebendo SF 0,9% 100ml a 20ml/h em BIC, ocluído"></textarea>
-          </div>
-          <button type="button" class="btn-add" id="btn-add-dispositivo">Adicionar</button>
 
           <div class="erro-msg" id="erro-bloco3"></div>
           <div class="btn-row">
@@ -299,6 +304,21 @@
           <button type="button" class="btn-action btn-danger" id="confirm-yes">Sim, deletar</button>
           <button type="button" class="btn-action btn-outline" id="confirm-no">Cancelar</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DISPOSITIVO -->
+  <div id="modal-disp" class="modal-disp-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-disp-sheet">
+      <div class="modal-disp-header">
+        <h3 id="modal-disp-titulo"></h3>
+        <button type="button" id="modal-disp-fechar" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="modal-disp-body" class="modal-disp-body"></div>
+      <div class="modal-disp-footer">
+        <div class="erro-msg" id="modal-disp-erro"></div>
+        <button type="button" id="modal-disp-confirmar" class="btn-primary">Adicionar</button>
       </div>
     </div>
   </div>
