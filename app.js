@@ -303,7 +303,7 @@ function buildDispForm(tipo) {
       <div class="campo">
         <label>Lúmens <span class="obrigatorio">*</span></label>
         <div class="radio-group">
-          ${dRadio('d-lumens', 'simples', 'Simples')}
+          ${dRadio('d-lumens', 'mono', 'Mono')}
           ${dRadio('d-lumens', 'duplo', 'Duplo')}
           ${dRadio('d-lumens', 'triplo', 'Triplo')}
         </div>
