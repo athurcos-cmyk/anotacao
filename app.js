@@ -1231,18 +1231,12 @@ function gerarTexto() {
     apresentaParts.push(`${acompGen} de ${parentesco} ${nome}`);
   }
 
-  // Obs do bloco 2 — entra na frase do Apresenta com "apresenta ..."
-  const obsApresenta = $('#obs-apresenta').value.trim();
-  if (obsApresenta) {
-    const obsLower = obsApresenta.charAt(0).toLowerCase() + obsApresenta.slice(1);
-    apresentaParts.push(`apresenta ${obsLower}`);
-  }
-
-  // Monta o texto do Apresenta (ainda não empurra — ordem MAR)
+  // Colaboração, deambulação, respiração, acompanhante — antes do Mantém
   let apresentaText = apresentaParts.join(', ');
   apresentaText = apresentaText.charAt(0).toUpperCase() + apresentaText.slice(1);
+  parts.push(apresentaText + '.');
 
-  // BLOCO 3 - Mantém vem ANTES do Apresenta (ordem M-A-R)
+  // BLOCO 3 - Mantém
   if (state.dispositivos.length > 0) {
     const dispTexto = state.dispositivos.map((d, i) => {
       if (i === 0) return `Mant\u00e9m ${d}`;
@@ -1251,8 +1245,12 @@ function gerarTexto() {
     parts.push(dispTexto + '.');
   }
 
-  // Apresenta vem depois do Mantém
-  parts.push(apresentaText + '.');
+  // Apresenta — seção separada, só aparece se houver obs digitada
+  const obsApresenta = $('#obs-apresenta').value.trim();
+  if (obsApresenta) {
+    const obsUpper = obsApresenta.charAt(0).toUpperCase() + obsApresenta.slice(1);
+    parts.push(`Paciente apresenta ${obsApresenta.charAt(0).toLowerCase() + obsApresenta.slice(1)}.`);
+  }
 
   // BLOCO 4 - Refere
   const refereParts = [];
