@@ -195,6 +195,7 @@
             <div class="radio-group">
               <label class="radio-btn"><input type="radio" name="colaboracao" value="sendo colaborativa" required data-f-value="sendo colaborativa" data-m-value="sendo colaborativo" data-f-label="Colaborativa" data-m-label="Colaborativo"><span>Colaborativa</span></label>
               <label class="radio-btn"><input type="radio" name="colaboracao" value="não sendo colaborativa com os cuidados" data-f-value="não sendo colaborativa com os cuidados" data-m-value="não sendo colaborativo com os cuidados" data-f-label="Não colaborativa" data-m-label="Não colaborativo"><span>Não colaborativa</span></label>
+              <label class="radio-btn"><input type="radio" name="colaboracao" value="inconsciente / sem resposta a estímulos" data-f-value="inconsciente / sem resposta a estímulos" data-m-value="inconsciente / sem resposta a estímulos" data-f-label="Inconsciente" data-m-label="Inconsciente"><span>Inconsciente</span></label>
             </div>
           </div>
 
@@ -221,6 +222,15 @@
               <label class="radio-btn"><input type="radio" name="respiracao" value="cateter nasal de O₂"><span>Cateter nasal de O₂</span></label>
               <label class="radio-btn"><input type="radio" name="respiracao" value="máscara de O₂"><span>Máscara de O₂</span></label>
               <label class="radio-btn"><input type="radio" name="respiracao" value="ventilação mecânica"><span>Ventilação mecânica</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="resp-padrao-container" style="display:none">
+            <label>Padrão respiratório <span class="obrigatorio">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn"><input type="radio" name="resp-padrao" value="eupneica" data-f-value="eupneica" data-m-value="eupneico"><span>Eupneico(a)</span></label>
+              <label class="radio-btn"><input type="radio" name="resp-padrao" value="dispneica" data-f-value="dispneica" data-m-value="dispneico"><span>Dispneico(a)</span></label>
+              <label class="radio-btn"><input type="radio" name="resp-padrao" value="taquipneica" data-f-value="taquipneica" data-m-value="taquipneico"><span>Taquipneico(a)</span></label>
             </div>
           </div>
 
@@ -277,6 +287,7 @@
             <button type="button" class="btn-tipo" data-tipo="Shilley">Shilley</button>
             <button type="button" class="btn-tipo" data-tipo="SNE">SNE</button>
             <button type="button" class="btn-tipo" data-tipo="SNG">SNG</button>
+            <button type="button" class="btn-tipo" data-tipo="Monitor">Monitor</button>
             <button type="button" class="btn-tipo btn-tipo-outro" data-tipo="Dreno">+ Dreno / Outro</button>
           </div>
 
@@ -312,7 +323,10 @@
 
           <div class="campo condicional" id="svd-container" style="display:none">
             <label for="svd-debito">Débito atual <span class="obrigatorio">*</span></label>
-            <input type="text" id="svd-debito" placeholder="Ex: 200ml">
+            <div class="input-suffix-wrap">
+              <input type="number" id="svd-debito" min="0" placeholder="Ex: 200">
+              <span class="input-suffix">ml</span>
+            </div>
           </div>
 
           <div class="campo">
@@ -338,8 +352,8 @@
         <!-- BLOCO 5 - FECHAMENTO -->
         <section class="bloco" id="bloco-5" data-bloco="5">
           <h2>Fechamento</h2>
-          <p class="hint">O fechamento espelha a abertura automaticamente.</p>
-          <div id="fechamento-preview" class="fechamento-preview"></div>
+          <p class="hint">O fechamento é gerado automaticamente — edite se necessário.</p>
+          <textarea id="fechamento-preview" class="fechamento-preview" rows="3"></textarea>
 
           <div class="erro-msg" id="erro-bloco5"></div>
           <div class="btn-row">
@@ -367,10 +381,12 @@
           WhatsApp
         </button>
         <button type="button" class="btn-action btn-secondary" id="btn-salvar">Salvar</button>
+        <button type="button" class="btn-action btn-outline" id="btn-voltar-preview">← Voltar e editar</button>
         <button type="button" class="btn-action btn-outline" id="btn-nova">Nova anotação</button>
       </div>
-      <div id="toast" class="toast"></div>
     </section>
+  <!-- Toast global -->
+  <div id="toast" class="toast"></div>
 
     <!-- HISTORICO -->
     <section id="historico-screen" class="screen" style="display:none">
@@ -460,6 +476,9 @@
           <div class="erro-msg" id="pc-erro"></div>
         </div>
 
+        <div id="pc-busca-container" style="display:none" class="pc-busca-container">
+          <input type="text" id="pc-busca" class="pc-busca-input" placeholder="🔍 Buscar por nome ou leito...">
+        </div>
         <div id="pc-lista" class="pc-lista"></div>
       </div>
     </section>

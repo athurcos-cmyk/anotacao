@@ -667,6 +667,26 @@ textarea {
   line-height: 1.6;
   color: var(--text);
   margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s;
+}
+.fechamento-preview:focus { border-color: var(--accent); }
+
+/* Input com sufixo (ex: SVD débito + ml) */
+.input-suffix-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-suffix-wrap input { flex: 1; }
+.input-suffix {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
 
 /* ===== PREVIEW SCREEN ===== */
@@ -1351,7 +1371,13 @@ textarea {
 .pc-btn-buscar { background: var(--accent); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 0 24px; transition: background .2s; white-space: nowrap; }
 .pc-btn-buscar:hover { background: #3D8FE8; }
 .pc-btn-buscar:disabled { opacity: .5; cursor: default; }
-.pc-lista { padding: 20px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+#pc-view { max-width: 640px; margin: 0 auto; width: 100%; }
+#pc-screen { display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+.pc-view-header { width: 100%; max-width: 640px; }
+.pc-busca-container { padding: 12px 20px 0; max-width: 520px; margin: 0 auto; width: 100%; }
+.pc-busca-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; font-size: 1rem; padding: 10px 14px; outline: none; transition: border-color .2s; box-sizing: border-box; }
+.pc-busca-input:focus { border-color: var(--accent); }
+.pc-lista { padding: 20px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; width: 100%; }
 .pc-anot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeIn .25s ease; }
 .pc-anot-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(45,125,210,.1); border-bottom: 1px solid var(--border); }
 .pc-anot-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }

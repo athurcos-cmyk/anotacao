@@ -221,11 +221,15 @@ function setupConditionals() {
   // Respiracao
   $$('input[name="respiracao"]').forEach(radio => {
     radio.addEventListener('change', () => {
-      const container = $('#oxigenio-container');
-      const needsO2 = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
-      container.style.display = needsO2 ? 'block' : 'none';
+      const o2Container    = $('#oxigenio-container');
+      const padraoContainer = $('#resp-padrao-container');
+      const needsO2   = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
+      const needsPadrao = needsO2; // mostra padrão só para O2 (eupneico/dispneico já está no valor de ar ambiente)
+      o2Container.style.display     = needsO2     ? 'block' : 'none';
+      padraoContainer.style.display = needsPadrao ? 'block' : 'none';
       if (!needsO2) {
         $('#oxigenio-litros').value = '';
+        $$('input[name="resp-padrao"]').forEach(r => r.checked = false);
       }
     });
   });
@@ -391,9 +395,11 @@ function buildDispForm(tipo) {
   switch (tipo) {
     case 'AVP': return `
       <div class="campo">
-        <label>Membro <span class="obrigatorio">*</span></label>
-        <div class="radio-group">
-          ${['MSE','MSD','MIE','MID'].map(m => dRadio('d-membro', m, m)).join('')}
+        <label>Local <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${['MSE','MSD','MIE','MID'].map(m => dRadio('d-local-avp', m, m)).join('')}
+          ${dRadio('d-local-avp', 'jugular D', 'Jugular D')}
+          ${dRadio('d-local-avp', 'jugular E', 'Jugular E')}
         </div>
       </div>
       ${statusSalInfFields()}
@@ -561,6 +567,16 @@ function buildDispForm(tipo) {
         </div>
       </div>`;
 
+    case 'Monitor': return `
+      <div class="campo">
+        <label>Tipo de monitorização <span class="obrigatorio">*</span></label>
+        <div class="radio-group vertical">
+          ${dRadio('d-monitor', 'monitor multiparamétrico', 'Monitor multiparamétrico')}
+          ${dRadio('d-monitor', 'oxímetro de pulso', 'Oxímetro de pulso')}
+          ${dRadio('d-monitor', 'monitor cardíaco', 'Monitor cardíaco')}
+        </div>
+      </div>`;
+
     case 'Dreno': return `
       <div class="campo">
         <label>Descreva o dreno <span class="obrigatorio">*</span></label>
@@ -633,20 +649,20 @@ function buildDispText(tipo) {
 
   switch (tipo) {
     case 'AVP': {
-      const membro = dModalRadio('d-membro');
+      const local  = dModalRadio('d-local-avp');
       const status = dModalRadio('d-status');
       const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
       const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
-      if (!membro) return erro('Selecione o membro');
+      if (!local)  return erro('Selecione o local');
       if (!status) return erro('Selecione o status');
       if (status === 'inf') {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `AVP em ${membro}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
+        return `AVP em ${local}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
       }
-      return `AVP em ${membro}, salinizado e ocluído${datePart}`;
+      return `AVP em ${local}, salinizado e ocluído${datePart}`;
     }
 
     case 'CVC': {
@@ -763,6 +779,12 @@ function buildDispText(tipo) {
       if (tipos.length === 0) return erro('Selecione pelo menos um tipo de pulseira');
       const tiposStr = tipos.join(', ');
       return `Pulseira${tipos.length > 1 ? 's' : ''} em ${membro}: ${tiposStr}`;
+    }
+
+    case 'Monitor': {
+      const tipo = dModalRadio('d-monitor');
+      if (!tipo) return erro('Selecione o tipo de monitorização');
+      return `em monitorização com ${tipo}`;
     }
 
     case 'Dreno':
@@ -948,9 +970,15 @@ function validateBloco2() {
   const resp = getRadioValue('respiracao');
   if (!resp) {
     erros.push('Selecione respiração');
-  } else if ((resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') && !$('#oxigenio-litros').value) {
-    erros.push('Informe os litros por minuto');
-    $('#oxigenio-litros').closest('.campo').classList.add('invalido');
+  } else if ((resp === 'cateter nasal de O₂' || resp === 'máscara de O₂')) {
+    if (!$('#oxigenio-litros').value) {
+      erros.push('Informe os litros por minuto');
+      $('#oxigenio-litros').closest('.campo').classList.add('invalido');
+    }
+    if (!document.querySelector('input[name="resp-padrao"]:checked')) {
+      erros.push('Selecione o padrão respiratório');
+      $('#resp-padrao-container').classList.add('invalido');
+    }
   }
 
   // Acompanhante
@@ -1045,8 +1073,12 @@ function gerarTexto() {
   // Respiracao
   const resp = getRadioValue('respiracao');
   if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
-    const litros = $('#oxigenio-litros').value;
-    apresentaParts.push(`em ${resp} a ${litros}L/min`);
+    const litros  = $('#oxigenio-litros').value;
+    const genero  = getGenero();
+    const padraoEl = document.querySelector('input[name="resp-padrao"]:checked');
+    const padraoVal = padraoEl ? (genero === 'M' ? (padraoEl.dataset.mValue || padraoEl.value) : (padraoEl.dataset.fValue || padraoEl.value)) : '';
+    const padraoTxt = padraoVal ? `, ${padraoVal}` : '';
+    apresentaParts.push(`em ${resp} a ${litros}L/min${padraoTxt}`);
   } else {
     apresentaParts.push(resp);
   }
@@ -1098,7 +1130,7 @@ function gerarTexto() {
     const diuTexts = diureseVals.map(d => {
       if (d === 'SVD') {
         const debito = $('#svd-debito').value.trim();
-        return `SVD com d\u00e9bito presente de ${debito}`;
+        return `SVD com d\u00e9bito presente de ${debito}ml`;
       }
       return d;
     });
@@ -1118,8 +1150,9 @@ function gerarTexto() {
     parts.push(`Refere ${queixas}.`);
   }
 
-  // BLOCO 5 - Fechamento
-  parts.push(`Mantenho cama ${posicao}, rodas ${rodas}, grades ${grades} e dec\u00fabito ${decubito}, campainha pr\u00f3xima e oriento a chamar sempre que necess\u00e1rio.`);
+  // BLOCO 5 - Fechamento (usa o valor editável do textarea)
+  const fechamentoEditado = els.fechamentoPreview.value.trim();
+  parts.push(fechamentoEditado || `Mantenho cama ${posicao}, rodas ${rodas}, grades ${grades} e dec\u00fabito ${decubito}, campainha pr\u00f3xima e oriento a chamar sempre que necess\u00e1rio.`);
 
   return parts.join(' ');
 }
@@ -1130,7 +1163,7 @@ function updateFechamentoPreview() {
   const grades = getRadioValue('grades') || '___';
   const decubito = getRadioValue('decubito') || '___';
 
-  els.fechamentoPreview.textContent = `Mantenho cama ${posicao}, rodas ${rodas}, grades ${grades} e dec\u00fabito ${decubito}, campainha pr\u00f3xima e oriento a chamar sempre que necess\u00e1rio.`;
+  els.fechamentoPreview.value = `Mantenho cama ${posicao}, rodas ${rodas}, grades ${grades} e dec\u00fabito ${decubito}, campainha pr\u00f3xima e oriento a chamar sempre que necess\u00e1rio.`;
 }
 
 // ===== PREVIEW =====
@@ -1148,6 +1181,13 @@ function setupPreview() {
 
   $('#btn-nova').addEventListener('click', () => {
     resetForm();
+  });
+
+  // Voltar ao formulário sem apagar
+  $('#btn-voltar-preview').addEventListener('click', () => {
+    showForm();
+    goToBloco(5);
+    window.scrollTo({ top: 0 });
   });
 
   $('#btn-whatsapp').addEventListener('click', () => {
@@ -2126,7 +2166,32 @@ async function pcBuscar() {
   }
 }
 
+let pcListaCompleta = []; // guarda para filtrar
+
 function pcRenderLista(lista) {
+  pcListaCompleta = lista;
+
+  // Mostrar campo de busca
+  const buscaContainer = $('#pc-busca-container');
+  if (buscaContainer) {
+    buscaContainer.style.display = 'block';
+    const buscaInput = $('#pc-busca');
+    buscaInput.value = '';
+    buscaInput.oninput = () => {
+      const termo = buscaInput.value.trim().toLowerCase();
+      const filtrada = termo
+        ? lista.filter(a => (a.nome || '').toLowerCase().includes(termo) || (a.texto || '').toLowerCase().includes(termo))
+        : lista;
+      pcRenderItens(filtrada);
+    };
+  }
+
+  const listaEl = $('#pc-lista');
+  listaEl.innerHTML = '';
+  pcRenderItens(lista);
+}
+
+function pcRenderItens(lista) {
   const listaEl = $('#pc-lista');
   listaEl.innerHTML = '';
 
