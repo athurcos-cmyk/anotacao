@@ -226,12 +226,12 @@ function setupConditionals() {
     radio.addEventListener('change', () => {
       const o2Container     = $('#oxigenio-container');
       const padraoContainer = $('#resp-padrao-container');
-      const needsO2     = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
-      const needsPadrao = radio.value !== 'ventilação mecânica'; // sempre mostra, exceto VM
-      o2Container.style.display     = needsO2     ? 'block' : 'none';
-      padraoContainer.style.display = needsPadrao ? 'block' : 'none';
-      if (!needsO2)     $('#oxigenio-litros').value = '';
-      if (!needsPadrao) $$('input[name="resp-padrao"]').forEach(r => r.checked = false);
+      const needsO2 = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
+      const isVM    = radio.value === 'ventilação mecânica';
+      o2Container.style.display     = needsO2 ? 'block' : 'none';
+      padraoContainer.style.display = isVM    ? 'none'  : 'block';
+      if (!needsO2) $('#oxigenio-litros').value = '';
+      if (isVM)     $$('input[name="resp-padrao"]').forEach(r => r.checked = false);
     });
   });
 
@@ -1096,17 +1096,17 @@ function validateBloco2() {
   const resp = getRadioValue('respiracao');
   if (!resp) {
     erros.push('Selecione respiração');
-  } else if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
-    if (!$('#oxigenio-litros').value) {
-      erros.push('Informe os litros por minuto');
-      $('#oxigenio-litros').closest('.campo').classList.add('invalido');
-    }
+  } else if (resp !== 'ventilação mecânica') {
+    // Padrão obrigatório para tudo exceto VM
     if (!document.querySelector('input[name="resp-padrao"]:checked')) {
       erros.push('Selecione o padrão respiratório');
       $('#resp-padrao-container').classList.add('invalido');
     }
+    if ((resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') && !$('#oxigenio-litros').value) {
+      erros.push('Informe os litros por minuto');
+      $('#oxigenio-litros').closest('.campo').classList.add('invalido');
+    }
   }
-  // padrão respiratório é opcional para ar ambiente
 
   // Acompanhante
   const acomp = getRadioValue('acompanhante');
@@ -1210,15 +1210,20 @@ function gerarTexto() {
 
   if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
     const litros = $('#oxigenio-litros').value;
-    const padraoTxt = padraoVal ? `, ${padraoVal}` : '';
-    apresentaParts.push(`em ${resp} a ${litros}L/min${padraoTxt}`);
-  } else if (resp === 'eupneica em ar ambiente' && padraoVal && padraoVal !== 'eupneica' && padraoVal !== 'eupneico') {
-    // Paciente em ar ambiente mas com padrão alterado (ex: dispneica em ar ambiente)
-    apresentaParts.push(`${padraoVal} em ar ambiente`);
-  } else if (resp === 'eupneica em ar ambiente') {
-    apresentaParts.push(resp);
+    // padrão vem antes do modo: "eupneica, em cateter nasal de O₂ a 2L/min"
+    if (padraoVal) apresentaParts.push(padraoVal);
+    apresentaParts.push(`em ${resp} a ${litros}L/min`);
+  } else if (resp === 'em ar ambiente') {
+    // eupneico + ar ambiente → só "em ar ambiente" (eupneico é o normal)
+    // dispneico/taquipneico + ar ambiente → "[padrão] em ar ambiente"
+    const isEupneico = padraoVal === 'eupneica' || padraoVal === 'eupneico';
+    if (padraoVal && !isEupneico) {
+      apresentaParts.push(`${padraoVal} em ar ambiente`);
+    } else {
+      apresentaParts.push('em ar ambiente');
+    }
   } else {
-    // ventilação mecânica ou outro
+    // ventilação mecânica
     apresentaParts.push(resp);
   }
 
