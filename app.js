@@ -1238,12 +1238,11 @@ function gerarTexto() {
     apresentaParts.push(`apresenta ${obsLower}`);
   }
 
-  // Capitalize first letter (after period it starts a new sentence)
+  // Monta o texto do Apresenta (ainda não empurra — ordem MAR)
   let apresentaText = apresentaParts.join(', ');
   apresentaText = apresentaText.charAt(0).toUpperCase() + apresentaText.slice(1);
-  parts.push(apresentaText + '.');
 
-  // BLOCO 3 - Mantem (omite se vazio)
+  // BLOCO 3 - Mantém vem ANTES do Apresenta (ordem M-A-R)
   if (state.dispositivos.length > 0) {
     const dispTexto = state.dispositivos.map((d, i) => {
       if (i === 0) return `Mant\u00e9m ${d}`;
@@ -1251,6 +1250,9 @@ function gerarTexto() {
     }).join('; ');
     parts.push(dispTexto + '.');
   }
+
+  // Apresenta vem depois do Mantém
+  parts.push(apresentaText + '.');
 
   // BLOCO 4 - Refere
   const refereParts = [];
