@@ -1410,3 +1410,24 @@ textarea {
 .btn-copiar-pc.copiado { background: #16A34A; }
 .pc-estado { text-align: center; padding: 40px 0; color: var(--text-dim); font-size: 0.95rem; }
 .pc-spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+
+/* ===== SALVAR IDENTIFICAÇÃO (nome + leito) ===== */
+.salvar-identificacao {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+@media (max-width: 360px) {
+  .salvar-identificacao { grid-template-columns: 1fr; }
+}
+
+/* ===== MODAL EDIT AREA ===== */
+.modal-edit-area {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.modal-edit-area .salvar-identificacao { margin-bottom: 0; }

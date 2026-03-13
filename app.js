@@ -377,25 +377,32 @@ function dataField() {
     </div>`;
 }
 
-function statusSalInfFields() {
+function statusCheckboxInfFields() {
+  // Checkboxes para salinizado/ocluído + radio para infusão
   return `
     <div class="campo">
-      <label>Status <span class="obrigatorio">*</span></label>
+      <label>Status <span class="obrigatorio">*</span> <span class="hint-inline">(marque o que se aplica)</span></label>
       <div class="radio-group vertical">
-        ${dRadio('d-status', 'sal', 'Salinizado e ocluído')}
-        ${dRadio('d-status', 'inf', 'Em infusão')}
+        <label class="checkbox-label"><input type="checkbox" id="d-sal" name="d-sal-cb"><span>Salinizado</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-ocl" name="d-ocl-cb"><span>Ocluído</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-inf-cb" name="d-inf-cb"><span>Em infusão</span></label>
       </div>
     </div>
     ${infusaoFields()}`;
 }
 
+function statusSalInfFields() {
+  return statusCheckboxInfFields();
+}
+
 function statusSalOclFields() {
+  // Para Permcath / Shilley: salinizado e ocluído como checkboxes
   return `
     <div class="campo">
-      <label>Status <span class="obrigatorio">*</span></label>
+      <label>Status <span class="obrigatorio">*</span> <span class="hint-inline">(marque o que se aplica)</span></label>
       <div class="radio-group vertical">
-        ${dRadio('d-status', 'sal', 'Salinizado e ocluído')}
-        ${dRadio('d-status', 'ocl', 'Ocluído (sem confirmar salinização)')}
+        <label class="checkbox-label"><input type="checkbox" id="d-sal" name="d-sal-cb"><span>Salinizado</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-ocl" name="d-ocl-cb"><span>Ocluído</span></label>
       </div>
     </div>`;
 }
@@ -589,8 +596,36 @@ function buildDispForm(tipo) {
 
     case 'Dreno': return `
       <div class="campo">
-        <label>Descreva o dreno <span class="obrigatorio">*</span></label>
-        <textarea id="d-dreno" rows="4" placeholder="Ex: dreno de penrose em FID, com curativo seco"></textarea>
+        <label>Tipo do dreno <span class="obrigatorio">*</span></label>
+        <input type="text" id="d-dreno-tipo" placeholder="Ex: tórax, abdominal, penrose, blake">
+      </div>
+      <div class="campo">
+        <label>Localização <span class="obrigatorio">*</span></label>
+        <input type="text" id="d-dreno-local" placeholder="Ex: flanco direito, hipocôndrio esquerdo">
+      </div>
+      <div class="campo">
+        <label>Débito drenado</label>
+        <div class="input-suffix-wrap">
+          <input type="number" id="d-dreno-debito" min="0" placeholder="Ex: 350">
+          <span class="input-suffix">ml</span>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Aspecto / coloração <span class="obrigatorio">*</span></label>
+        <input type="text" id="d-dreno-aspecto" placeholder="Ex: sanguinolento, serossanguinolento, seroso, bilioso">
+      </div>
+      <div class="campo">
+        <label class="checkbox-label" style="margin-bottom:8px">
+          <input type="checkbox" id="d-dreno-selo-cb">
+          <span>Possui selo d'água</span>
+        </label>
+        <div id="d-dreno-selo-container" style="display:none">
+          <label>Débito no selo d'água</label>
+          <div class="input-suffix-wrap">
+            <input type="number" id="d-dreno-selo-val" min="0" placeholder="Ex: 100">
+            <span class="input-suffix">ml</span>
+          </div>
+        </div>
       </div>`;
 
     default: return `
@@ -603,14 +638,15 @@ function buildDispForm(tipo) {
 
 // — Conditionals dentro do modal —
 function setupDispModalConditionals(tipo) {
-  // Status sal/inf (AVP, CVC, PICC)
+  // Infusão checkbox (AVP, CVC, PICC)
   if (['AVP','CVC','PICC'].includes(tipo)) {
-    $$('#modal-disp-body input[name="d-status"]').forEach(r => {
-      r.addEventListener('change', () => {
+    const infCb = document.querySelector('#modal-disp-body #d-inf-cb');
+    if (infCb) {
+      infCb.addEventListener('change', () => {
         const inf = document.querySelector('#modal-disp-body #d-inf');
-        if (inf) inf.style.display = r.value === 'inf' ? 'block' : 'none';
+        if (inf) inf.style.display = infCb.checked ? 'block' : 'none';
       });
-    });
+    }
   }
 
   // SNE dieta
@@ -651,6 +687,30 @@ function setupDispModalConditionals(tipo) {
       });
     });
   }
+
+  // Dreno — selo d'água
+  if (tipo === 'Dreno') {
+    const seloCb = document.querySelector('#modal-disp-body #d-dreno-selo-cb');
+    if (seloCb) {
+      seloCb.addEventListener('change', () => {
+        const container = document.querySelector('#modal-disp-body #d-dreno-selo-container');
+        if (container) container.style.display = seloCb.checked ? 'block' : 'none';
+        if (!seloCb.checked) {
+          const val = document.querySelector('#modal-disp-body #d-dreno-selo-val');
+          if (val) val.value = '';
+        }
+      });
+    }
+  }
+
+  // Sem data — todos os tipos que usam dataField()
+  const semDataCbGlobal = document.querySelector('#modal-disp-body #d-sem-data');
+  if (semDataCbGlobal && tipo !== 'SNG') {
+    semDataCbGlobal.addEventListener('change', () => {
+      const dataInput = document.querySelector('#modal-disp-body #d-data');
+      if (dataInput) dataInput.style.display = semDataCbGlobal.checked ? 'none' : '';
+    });
+  }
 }
 
 // — Geração do texto —
@@ -659,82 +719,115 @@ function buildDispText(tipo) {
 
   switch (tipo) {
     case 'AVP': {
-      const local  = dModalRadio('d-local-avp');
-      const status = dModalRadio('d-status');
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
-      if (!local)  return erro('Selecione o local');
-      if (!status) return erro('Selecione o status');
-      if (status === 'inf') {
-        const sol = dModalGet('#d-sol');
-        const vel = dModalGet('#d-vel');
-        if (!sol) return erro('Informe a solução');
-        if (!vel) return erro('Informe a velocidade');
-        return `AVP em ${local}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
-      }
-      return `AVP em ${local}, salinizado e ocluído${datePart}`;
-    }
-
-    case 'CVC': {
-      const local = dModalRadio('d-local');
-      const lumens = dModalRadio('d-lumens');
-      const status = dModalRadio('d-status');
+      const local   = dModalRadio('d-local-avp');
+      const isSal   = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl   = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isInf   = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
       const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
       const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
-      if (!lumens) return erro('Selecione os lúmens');
-      if (!status) return erro('Selecione o status');
-      const base = `CVC ${lumens} lúmen em ${local}`;
-      if (status === 'inf') {
+      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
+      if (isInf) {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
+        const statusParts = [];
+        if (isSal) statusParts.push('salinizado');
+        if (isOcl) statusParts.push('ocluído');
+        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        return `AVP em ${local}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
       }
-      return `${base}, salinizado e ocluído${datePart}`;
+      const statusParts = [];
+      if (isSal) statusParts.push('salinizado');
+      if (isOcl) statusParts.push('ocluído');
+      return `AVP em ${local}, ${statusParts.join(' e ')}${datePart}`;
+    }
+
+    case 'CVC': {
+      const local  = dModalRadio('d-local');
+      const lumens = dModalRadio('d-lumens');
+      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isInf  = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      if (!local)  return erro('Selecione o local');
+      if (!lumens) return erro('Selecione os lúmens');
+      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
+      const base = `CVC ${lumens} lúmen em ${local}`;
+      if (isInf) {
+        const sol = dModalGet('#d-sol');
+        const vel = dModalGet('#d-vel');
+        if (!sol) return erro('Informe a solução');
+        if (!vel) return erro('Informe a velocidade');
+        const statusParts = [];
+        if (isSal) statusParts.push('salinizado');
+        if (isOcl) statusParts.push('ocluído');
+        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        return `${base}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
+      }
+      const statusParts = [];
+      if (isSal) statusParts.push('salinizado');
+      if (isOcl) statusParts.push('ocluído');
+      return `${base}, ${statusParts.join(' e ')}${datePart}`;
     }
 
     case 'PICC': {
       const membro = dModalRadio('d-membro');
       const lumens = dModalRadio('d-lumens');
-      const status = dModalRadio('d-status');
+      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isInf  = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
       const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
       const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!membro) return erro('Selecione o membro');
       if (!lumens) return erro('Selecione os lúmens');
-      if (!status) return erro('Selecione o status');
+      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
       const base = `PICC ${lumens} lúmen em ${membro}`;
-      if (status === 'inf') {
+      if (isInf) {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
+        const statusParts = [];
+        if (isSal) statusParts.push('salinizado');
+        if (isOcl) statusParts.push('ocluído');
+        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        return `${base}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
       }
-      return `${base}, salinizado e ocluído${datePart}`;
+      const statusParts = [];
+      if (isSal) statusParts.push('salinizado');
+      if (isOcl) statusParts.push('ocluído');
+      return `${base}, ${statusParts.join(' e ')}${datePart}`;
     }
 
     case 'Permcath': {
-      const local = dModalRadio('d-local');
-      const status = dModalRadio('d-status');
+      const local  = dModalRadio('d-local');
+      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
       const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
       const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
-      if (!status) return erro('Selecione o status');
-      const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
-      return `Permcath em ${local}, ${est}${datePart}`;
+      if (!isSal && !isOcl) return erro('Selecione pelo menos um status');
+      const statusParts = [];
+      if (isSal) statusParts.push('salinizado');
+      if (isOcl) statusParts.push('ocluído');
+      return `Permcath em ${local}, ${statusParts.join(' e ')}${datePart}`;
     }
 
     case 'Shilley': {
-      const local = dModalRadio('d-local');
-      const status = dModalRadio('d-status');
+      const local  = dModalRadio('d-local');
+      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
       const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
       const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
-      if (!status) return erro('Selecione o status');
-      const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
-      return `Shilley em ${local}, ${est}${datePart}`;
+      if (!isSal && !isOcl) return erro('Selecione pelo menos um status');
+      const statusParts = [];
+      if (isSal) statusParts.push('salinizado');
+      if (isOcl) statusParts.push('ocluído');
+      return `Shilley em ${local}, ${statusParts.join(' e ')}${datePart}`;
     }
 
     case 'SNE': {
@@ -797,7 +890,25 @@ function buildDispText(tipo) {
       return `em monitorização com ${tipo}`;
     }
 
-    case 'Dreno':
+    case 'Dreno': {
+      const tipo    = dModalGet('#d-dreno-tipo');
+      const local   = dModalGet('#d-dreno-local');
+      const aspecto = dModalGet('#d-dreno-aspecto');
+      if (!tipo)    return erro('Informe o tipo do dreno');
+      if (!local)   return erro('Informe a localização');
+      if (!aspecto) return erro('Informe o aspecto/coloração');
+      const debito  = dModalGet('#d-dreno-debito');
+      const seloCheck = document.querySelector('#modal-disp-body #d-dreno-selo-cb')?.checked;
+      const seloVal   = dModalGet('#d-dreno-selo-val');
+      let txt = `Dreno de ${tipo} em ${local}`;
+      if (debito) txt += `, com débito de ${debito}ml`;
+      txt += `, de coloração ${aspecto}`;
+      if (seloCheck) {
+        txt += seloVal ? `, selo d'água em ${seloVal}ml` : `, selo d'água`;
+      }
+      return txt;
+    }
+
     default: {
       const txt = dModalGet('#d-dreno');
       if (!txt) return erro('Descreva o dispositivo');
@@ -1167,13 +1278,25 @@ function gerarTexto() {
         const debito = $('#svd-debito').value.trim();
         return `SVD com d\u00e9bito presente de ${debito}ml`;
       }
+      if (d === 'banheiro')  return 'diurese espontânea ao banheiro';
+      if (d === 'papagaio')  return 'diurese espontânea em uso de papagaio';
+      if (d === 'comadre')   return 'diurese espontânea em uso de comadre';
+      if (d === 'fralda')    return 'diurese em fralda';
       return d;
     });
-    if (diuTexts.length === 1) {
-      refereParts.push(`diurese em ${diuTexts[0]}`);
-    } else if (diuTexts.length > 1) {
-      const last = diuTexts.pop();
-      refereParts.push(`diurese em ${diuTexts.join(', ')} e ${last}`);
+    // Filtra os que já têm "diurese" no texto (banheiro/papagaio/comadre/fralda)
+    const completos = diuTexts.filter(t => t.startsWith('diurese') || t.startsWith('SVD'));
+    const simples   = diuTexts.filter(t => !t.startsWith('diurese') && !t.startsWith('SVD'));
+    if (completos.length > 0) {
+      refereParts.push(...completos);
+    }
+    if (simples.length > 0) {
+      if (simples.length === 1) {
+        refereParts.push(`diurese em ${simples[0]}`);
+      } else {
+        const last = simples[simples.length - 1];
+        refereParts.push(`diurese em ${simples.slice(0, -1).join(', ')} e ${last}`);
+      }
     }
   }
 
@@ -1209,7 +1332,8 @@ function setupPreview() {
 
   $('#btn-salvar').addEventListener('click', () => {
     const nomePaciente = $('#nome-paciente').value.trim();
-    salvarAnotacao(els.previewText.textContent, nomePaciente);
+    const leitoPaciente = $('#leito-paciente').value.trim();
+    salvarAnotacao(els.previewText.textContent, nomePaciente, 'recebimento', leitoPaciente);
     clearDraft();
     showToast('Anotação salva!');
   });
@@ -1391,7 +1515,8 @@ function renderHistorico() {
 
     const date = new Date(anot.timestamp);
     const dateStr = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const nomeLine = anot.nome ? `<div class="hist-nome">${escapeHtml(anot.nome)}</div>` : '';
+    const nomeLeito = [anot.nome, anot.leito ? 'Leito ' + anot.leito : ''].filter(Boolean).join(' — ');
+    const nomeLine = nomeLeito ? `<div class="hist-nome">${escapeHtml(nomeLeito)}</div>` : '';
     const preview = anot.texto.substring(0, 80) + (anot.texto.length > 80 ? '...' : '');
     const isSV = anot.tipo === 'sv';
     const tipoBadge = isSV
@@ -1437,6 +1562,36 @@ function setupModal() {
     }
   });
 
+  $('#modal-editar').addEventListener('click', () => {
+    if (!currentModalAnot) return;
+    const editArea = $('#modal-edit-area');
+    const isOpen = editArea.style.display !== 'none';
+    if (isOpen) {
+      editArea.style.display = 'none';
+    } else {
+      $('#modal-edit-nome').value  = currentModalAnot.nome  || '';
+      $('#modal-edit-leito').value = currentModalAnot.leito || '';
+      editArea.style.display = 'block';
+      $('#modal-edit-nome').focus();
+    }
+  });
+
+  $('#modal-edit-salvar').addEventListener('click', () => {
+    if (!currentModalAnot) return;
+    const novoNome  = $('#modal-edit-nome').value.trim();
+    const novoLeito = $('#modal-edit-leito').value.trim();
+    const atualizado = editarIdentificacaoAnotacao(currentModalAnot.timestamp, novoNome, novoLeito);
+    if (atualizado) {
+      currentModalAnot = atualizado;
+      // Atualiza o título do modal
+      const tituloPartes = [atualizado.nome, atualizado.leito].filter(Boolean);
+      $('#modal-title').textContent = tituloPartes.length ? tituloPartes.join(' — Leito ') : 'Anotação';
+      $('#modal-edit-area').style.display = 'none';
+      renderHistorico();
+      showToast('Identificação atualizada!');
+    }
+  });
+
   $('#modal-deletar').addEventListener('click', () => {
     if (currentModalAnot) {
       showConfirm('Tem certeza que deseja deletar esta anotação?', () => {
@@ -1453,8 +1608,10 @@ function setupModal() {
 
 function openModal(anot) {
   currentModalAnot = anot;
-  $('#modal-title').textContent = anot.nome || 'Anotação';
+  const tituloPartes = [anot.nome, anot.leito ? 'Leito ' + anot.leito : ''].filter(Boolean);
+  $('#modal-title').textContent = tituloPartes.length ? tituloPartes.join(' — ') : 'Anotação';
   els.modalText.textContent = anot.texto;
+  $('#modal-edit-area').style.display = 'none';
   els.modalOverlay.style.display = 'flex';
 }
 
@@ -1492,10 +1649,11 @@ function getAnotacoes() {
   }
 }
 
-function salvarAnotacao(texto, nomePaciente, tipo) {
+function salvarAnotacao(texto, nomePaciente, tipo, leito) {
   const anot = {
     texto,
     nome: nomePaciente || '',
+    leito: leito || '',
     timestamp: Date.now(),
     tipo: tipo || 'recebimento'
   };
@@ -1505,6 +1663,18 @@ function salvarAnotacao(texto, nomePaciente, tipo) {
 
   // Sync Firebase (se configurado)
   if (window.syncSaveAnnotation) window.syncSaveAnnotation(anot);
+}
+
+function editarIdentificacaoAnotacao(timestamp, novoNome, novoLeito) {
+  let anotacoes = getAnotacoes();
+  const idx = anotacoes.findIndex(a => a.timestamp === timestamp);
+  if (idx === -1) return false;
+  anotacoes[idx].nome  = novoNome  !== undefined ? novoNome  : anotacoes[idx].nome;
+  anotacoes[idx].leito = novoLeito !== undefined ? novoLeito : anotacoes[idx].leito;
+  localStorage.setItem('anotacoes_hc', JSON.stringify(anotacoes));
+  // Re-sync para Firebase
+  if (window.syncSaveAnnotation) window.syncSaveAnnotation(anotacoes[idx]);
+  return anotacoes[idx];
 }
 
 function deletarAnotacao(timestamp) {
@@ -1680,9 +1850,6 @@ function gerarTextoSV() {
     algiasText = `, refere ${desc}`;
   }
 
-  // Montar início
-  let texto = `${h} \u2013 Realizado aferição de sinais vitais${algiasText}.`;
-
   // Sinais vitais — um por linha
   const sv = [];
   if (paSis && paDia) sv.push(`PA ${paSis}/${paDia}mmHg`);
@@ -1693,6 +1860,13 @@ function gerarTextoSV() {
   if (sat)            sv.push(`SAT ${sat}%`);
   if (dextro)         sv.push(`Dextro ${dextro}mg/dL`);
 
+  // Abertura adaptada: completa (≥4 sinais principais) ou parcial
+  const maiores = [paSis && paDia, fc, fr, temp, sat].filter(Boolean).length;
+  const abertura = maiores >= 4
+    ? `${h} \u2013 Realizado aferição de sinais vitais${algiasText}.`
+    : `${h} \u2013 Realizado aferição parcial de sinais vitais${algiasText}.`;
+
+  let texto = abertura;
   if (sv.length > 0) {
     texto += '\n' + sv.join('\n');
   }
@@ -1708,9 +1882,15 @@ function mostrarPreviewSV(texto) {
     svPreview.id = 'sv-preview-area';
     svPreview.innerHTML = `
       <div class="sv-preview-text" id="sv-preview-text"></div>
-      <div class="campo" style="margin-bottom:16px">
-        <label for="sv-nome-paciente">Nome do paciente (para identificar no histórico)</label>
-        <input type="text" id="sv-nome-paciente" placeholder="Ex: João Silva - Leito 2A">
+      <div class="salvar-identificacao" style="margin-bottom:16px">
+        <div class="campo" style="margin-bottom:0">
+          <label for="sv-nome-paciente">Nome do paciente</label>
+          <input type="text" id="sv-nome-paciente" placeholder="Ex: João Silva">
+        </div>
+        <div class="campo" style="margin-bottom:0">
+          <label for="sv-leito-paciente">Leito</label>
+          <input type="text" id="sv-leito-paciente" placeholder="Ex: 2A">
+        </div>
       </div>
       <div class="preview-actions">
         <button type="button" class="btn-action" id="sv-btn-copiar">Copiar texto</button>
@@ -1725,9 +1905,10 @@ function mostrarPreviewSV(texto) {
     });
 
     $('#sv-btn-salvar').addEventListener('click', () => {
-      const t = $('#sv-preview-text').textContent;
-      const nome = $('#sv-nome-paciente').value.trim() || 'Sinais Vitais';
-      salvarAnotacao(t, nome, 'sv');
+      const t     = $('#sv-preview-text').textContent;
+      const nome  = $('#sv-nome-paciente').value.trim();
+      const leito = $('#sv-leito-paciente') ? $('#sv-leito-paciente').value.trim() : '';
+      salvarAnotacao(t, nome, 'sv', leito);
       showToast('Salvo!');
     });
 
@@ -1742,9 +1923,11 @@ function mostrarPreviewSV(texto) {
       $$('input[name="sv-algias"]').forEach(r => r.checked = false);
       $('#sv-dor-container').style.display = 'none';
       $('#sv-erro').textContent = '';
-      // Limpar nome do paciente para nova aferição
-      const nomeEl = $('#sv-nome-paciente');
+      // Limpar nome/leito para nova aferição
+      const nomeEl  = $('#sv-nome-paciente');
+      const leitoEl = $('#sv-leito-paciente');
       if (nomeEl) nomeEl.value = '';
+      if (leitoEl) leitoEl.value = '';
       window.scrollTo({ top: 0 });
     });
   }
@@ -2272,9 +2455,11 @@ function pcRenderItens(lista) {
     const tipoBadgePC = isSV
       ? `<span class="pc-tipo-badge pc-tipo-sv">❤️ Sinais Vitais</span>`
       : `<span class="pc-tipo-badge pc-tipo-rec">📋 Recebimento</span>`;
+    const pcTituloPartes = [anot.nome, anot.leito ? 'Leito ' + anot.leito : ''].filter(Boolean);
+    const pcTitulo = pcTituloPartes.join(' — ') || 'Anotação';
     card.innerHTML = `
       <div class="pc-anot-header">
-        <span class="pc-anot-title">${escapeHtml(anot.nome || 'Anotação')}</span>
+        <span class="pc-anot-title">${escapeHtml(pcTitulo)}</span>
         <div class="pc-anot-header-right">
           ${tipoBadgePC}
           <span class="pc-anot-time">${tempo}</span>

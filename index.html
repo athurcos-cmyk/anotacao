@@ -380,9 +380,15 @@
         <h2>Anotação Gerada</h2>
       </header>
       <div id="preview-text" class="preview-text"></div>
-      <div class="campo" style="margin-bottom:16px">
-        <label for="nome-paciente">Nome do paciente (para identificar no histórico)</label>
-        <input type="text" id="nome-paciente" placeholder="Ex: Maria Silva - Leito 4B">
+      <div class="salvar-identificacao">
+        <div class="campo" style="margin-bottom:0">
+          <label for="nome-paciente">Nome do paciente</label>
+          <input type="text" id="nome-paciente" placeholder="Ex: Maria Silva">
+        </div>
+        <div class="campo" style="margin-bottom:0">
+          <label for="leito-paciente">Leito</label>
+          <input type="text" id="leito-paciente" placeholder="Ex: 4B">
+        </div>
       </div>
       <div class="preview-actions">
         <button type="button" class="btn-action" id="btn-copiar">Copiar texto</button>
@@ -573,9 +579,24 @@
           <button type="button" id="modal-close" class="modal-close">&times;</button>
         </div>
         <div id="modal-text" class="modal-text"></div>
+        <!-- Área de edição de identificação -->
+        <div id="modal-edit-area" style="display:none" class="modal-edit-area">
+          <div class="salvar-identificacao">
+            <div class="campo" style="margin-bottom:0">
+              <label for="modal-edit-nome">Nome</label>
+              <input type="text" id="modal-edit-nome" placeholder="Nome do paciente">
+            </div>
+            <div class="campo" style="margin-bottom:0">
+              <label for="modal-edit-leito">Leito</label>
+              <input type="text" id="modal-edit-leito" placeholder="Ex: 4B">
+            </div>
+          </div>
+          <button type="button" class="btn-action btn-secondary" id="modal-edit-salvar" style="margin-top:8px;width:100%">Salvar identificação</button>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn-action" id="modal-copiar">Copiar</button>
           <button type="button" class="btn-action btn-whatsapp" id="modal-whatsapp">WhatsApp</button>
+          <button type="button" class="btn-action btn-outline" id="modal-editar">✏️ Editar</button>
           <button type="button" class="btn-action btn-danger" id="modal-deletar">Deletar</button>
         </div>
       </div>
