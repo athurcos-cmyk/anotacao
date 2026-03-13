@@ -11,13 +11,43 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=14">
+  <link rel="stylesheet" href="./style.css?v=15">
 </head>
 <body>
   <!-- Banner de atualização -->
   <div id="update-banner" style="display:none">
     <span>🔄 Nova versão disponível</span>
     <button id="btn-update">Atualizar agora</button>
+  </div>
+
+  <!-- ===== TELA DE LOGIN ===== -->
+  <div id="login-screen" style="display:none">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1E88E5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>
+        <h1>Anotação HC</h1>
+      </div>
+      <p class="login-subtitle">Assistente de anotações de enfermagem</p>
+
+      <div class="login-form">
+        <div class="campo">
+          <label for="login-codigo">Escolha seu código pessoal</label>
+          <input type="text" id="login-codigo" class="login-code-input" maxlength="6"
+            placeholder="Ex: ANA1, MED2, JOS3"
+            autocomplete="off" spellcheck="false" autocapitalize="characters">
+          <div id="login-codigo-status" class="login-status"></div>
+          <p class="login-dica">Use 3 a 6 letras/números. Anote este código — você vai precisar dele se limpar o cache.</p>
+        </div>
+
+        <div class="campo" id="login-nome-container" style="display:none">
+          <label for="login-nome">Seu nome <span class="text-opcional">(opcional)</span></label>
+          <input type="text" id="login-nome" placeholder="Ex: Ana Lima">
+        </div>
+
+        <div class="erro-msg" id="login-erro"></div>
+        <button type="button" id="btn-login-entrar" class="btn-next" disabled>Entrar</button>
+      </div>
+    </div>
   </div>
 
   <div id="app">
@@ -463,8 +493,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=14"></script>
-  <script src="./app.js?v=14"></script>
+  <script src="./firebase-sync.js?v=15"></script>
+  <script src="./app.js?v=15"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {

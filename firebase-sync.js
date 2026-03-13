@@ -125,6 +125,52 @@ async function processOfflineQueue() {
   }
 }
 
+// ── Verificar se código está disponível ──────
+async function checkCode(code) {
+  if (!db) {
+    await new Promise(r => setTimeout(r, 3000));
+    if (!db) return { exists: false, nome: null, offline: true };
+  }
+  const { ref, get, instance } = db;
+  try {
+    const snap = await get(ref(instance, `users/${code.toUpperCase()}`));
+    if (snap.exists()) {
+      return { exists: true, nome: snap.val().nome || null };
+    }
+    return { exists: false, nome: null };
+  } catch {
+    return { exists: false, nome: null, offline: true };
+  }
+}
+
+// ── Registrar novo código ─────────────────────
+async function registerCode(code, nome) {
+  if (!db) return false;
+  const { ref, set, instance } = db;
+  try {
+    await set(ref(instance, `users/${code.toUpperCase()}`), {
+      nome: nome || '',
+      createdAt: Date.now()
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── Carregar anotações da nuvem ao fazer login ─
+async function loadAnnotationsFromCloud(code) {
+  const annotations = await syncFetchByCode(code);
+  if (annotations.length === 0) return 0;
+  const existing = JSON.parse(localStorage.getItem('anotacoes_hc') || '[]');
+  const merged = [...existing];
+  annotations.forEach(a => {
+    if (!merged.find(e => e.timestamp === a.timestamp)) merged.push(a);
+  });
+  localStorage.setItem('anotacoes_hc', JSON.stringify(merged));
+  return annotations.length;
+}
+
 // ── Buscar anotações do código no PC ─────────
 async function syncFetchByCode(code) {
   if (!db) {
@@ -152,7 +198,10 @@ window.addEventListener('online', () => {
 initSync();
 
 // ── Exportar para uso no app.js ──────────────
-window.syncSaveAnnotation = syncSaveAnnotation;
-window.syncFetchByCode    = syncFetchByCode;
-window.getSyncCode        = getSyncCode;
+window.syncSaveAnnotation      = syncSaveAnnotation;
+window.syncFetchByCode         = syncFetchByCode;
+window.getSyncCode             = getSyncCode;
+window.checkCode               = checkCode;
+window.registerCode            = registerCode;
+window.loadAnnotationsFromCloud = loadAnnotationsFromCloud;
 window.SYNC_ENABLED       = SYNC_ENABLED;

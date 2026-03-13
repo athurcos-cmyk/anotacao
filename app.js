@@ -26,7 +26,9 @@ const els = {
   dispositivosLista: $('#dispositivos-lista'),
   fechamentoPreview: $('#fechamento-preview'),
   svScreen: $('#sv-screen'),
-  pcScreen: $('#pc-screen')
+  pcScreen: $('#pc-screen'),
+  loginScreen: $('#login-screen'),
+  appDiv: $('#app')
 };
 
 // ===== INIT =====
@@ -39,11 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
   setupModal();
   setupSV();
   setupPCMode();
+  setupLogin();
   updateBlocoView();
 
-  // Detecta desktop → mostra seletor de modo
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
-  if (!isMobile) showPCMode();
+  // Se já tem código salvo → vai direto pro app
+  const existingCode = localStorage.getItem('sync_code');
+  if (!existingCode) {
+    showLogin();
+  } else {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    if (!isMobile) showPCMode();
+  }
 
   window.addEventListener('resize', () => updateBlocoView());
 });
@@ -1413,6 +1421,118 @@ function mostrarPreviewSV(texto) {
   svPreview.style.display = 'block';
   document.querySelector('.sv-form').style.display = 'none';
   window.scrollTo({ top: 0 });
+}
+
+// ===== LOGIN =====
+function setupLogin() {
+  const inputCodigo   = $('#login-codigo');
+  const inputNome     = $('#login-nome');
+  const nomeContainer = $('#login-nome-container');
+  const status        = $('#login-codigo-status');
+  const erro          = $('#login-erro');
+  const btnEntrar     = $('#btn-login-entrar');
+
+  let checkTimeout = null;
+  let codeState    = null; // 'available' | 'returning' | null
+
+  inputCodigo.addEventListener('input', () => {
+    inputCodigo.value = inputCodigo.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const code = inputCodigo.value;
+
+    // Reset estado
+    status.textContent = '';
+    status.className   = 'login-status';
+    btnEntrar.disabled = true;
+    nomeContainer.style.display = 'none';
+    codeState = null;
+    erro.textContent = '';
+    clearTimeout(checkTimeout);
+
+    if (code.length < 3) return;
+
+    status.textContent = 'Verificando...';
+    status.className   = 'login-status status-wait';
+
+    checkTimeout = setTimeout(async () => {
+      const result = window.checkCode
+        ? await window.checkCode(code)
+        : { exists: false, nome: null };
+
+      if (result.offline) {
+        // Sem internet — permite entrar mesmo assim
+        status.textContent = '⚠️ Sem conexão — entrando offline';
+        status.className   = 'login-status status-err';
+        nomeContainer.style.display = 'block';
+        codeState = 'available';
+        btnEntrar.disabled = false;
+        return;
+      }
+
+      if (result.exists) {
+        const nome = result.nome ? `, ${result.nome}` : '';
+        status.textContent = `👋 Olá${nome}! Bem-vinda de volta.`;
+        status.className   = 'login-status status-back';
+        nomeContainer.style.display = 'none';
+        codeState = 'returning';
+      } else {
+        status.textContent = '✅ Código disponível!';
+        status.className   = 'login-status status-ok';
+        nomeContainer.style.display = 'block';
+        codeState = 'available';
+      }
+      btnEntrar.disabled = false;
+    }, 500);
+  });
+
+  btnEntrar.addEventListener('click', async () => {
+    const code = inputCodigo.value.trim().toUpperCase();
+    const nome = inputNome ? inputNome.value.trim() : '';
+
+    if (code.length < 3) {
+      erro.textContent = 'Código deve ter pelo menos 3 caracteres.';
+      return;
+    }
+    if (!codeState) {
+      erro.textContent = 'Aguarde a verificação do código.';
+      return;
+    }
+
+    btnEntrar.disabled  = true;
+    btnEntrar.textContent = 'Entrando...';
+
+    if (codeState === 'returning') {
+      // Usuário voltando — carrega anotações da nuvem
+      if (window.loadAnnotationsFromCloud) {
+        await window.loadAnnotationsFromCloud(code);
+      }
+    } else {
+      // Novo registro
+      if (window.registerCode) {
+        await window.registerCode(code, nome);
+      }
+    }
+
+    localStorage.setItem('sync_code', code);
+    hideLogin();
+  });
+}
+
+function showLogin() {
+  if (els.loginScreen) els.loginScreen.style.display = 'flex';
+  if (els.appDiv)      els.appDiv.style.display = 'none';
+}
+
+function hideLogin() {
+  if (els.loginScreen) els.loginScreen.style.display = 'none';
+  if (els.appDiv)      els.appDiv.style.display = '';
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+  if (!isMobile) {
+    showPCMode();
+  } else {
+    showForm();
+    updateBlocoView();
+  }
 }
 
 // ===== HELPERS =====
