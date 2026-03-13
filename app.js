@@ -366,25 +366,23 @@ function infusaoFields() {
 }
 
 function dataField() {
+  // Apenas o container condicional — aparece quando "Datado" é marcado
   return `
-    <div class="campo">
+    <div id="d-data-container" style="display:none" class="campo">
       <label>Data do curativo</label>
-      <label class="checkbox-label" style="margin-bottom:8px">
-        <input type="checkbox" id="d-sem-data">
-        <span>Sem data / não datado</span>
-      </label>
       <input type="date" id="d-data" value="${dHoje()}">
     </div>`;
 }
 
 function statusCheckboxInfFields() {
-  // Checkboxes para salinizado/ocluído + radio para infusão
+  // AVP / CVC / PICC: salinizado, ocluído, datado, em infusão — todos opt-in
   return `
     <div class="campo">
-      <label>Status <span class="obrigatorio">*</span> <span class="hint-inline">(marque o que se aplica)</span></label>
+      <label>Status <span class="hint-inline">(marque o que se aplica)</span></label>
       <div class="radio-group vertical">
-        <label class="checkbox-label"><input type="checkbox" id="d-sal" name="d-sal-cb"><span>Salinizado</span></label>
-        <label class="checkbox-label"><input type="checkbox" id="d-ocl" name="d-ocl-cb"><span>Ocluído</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-sal"    name="d-sal-cb"><span>Salinizado</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-ocl"    name="d-ocl-cb"><span>Ocluído</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-datado" name="d-datado-cb"><span>Datado</span></label>
         <label class="checkbox-label"><input type="checkbox" id="d-inf-cb" name="d-inf-cb"><span>Em infusão</span></label>
       </div>
     </div>
@@ -396,13 +394,14 @@ function statusSalInfFields() {
 }
 
 function statusSalOclFields() {
-  // Para Permcath / Shilley: salinizado e ocluído como checkboxes
+  // Permcath / Shilley: salinizado, ocluído, datado — todos opt-in
   return `
     <div class="campo">
-      <label>Status <span class="obrigatorio">*</span> <span class="hint-inline">(marque o que se aplica)</span></label>
+      <label>Status <span class="hint-inline">(marque o que se aplica)</span></label>
       <div class="radio-group vertical">
-        <label class="checkbox-label"><input type="checkbox" id="d-sal" name="d-sal-cb"><span>Salinizado</span></label>
-        <label class="checkbox-label"><input type="checkbox" id="d-ocl" name="d-ocl-cb"><span>Ocluído</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-sal"    name="d-sal-cb"><span>Salinizado</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-ocl"    name="d-ocl-cb"><span>Ocluído</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="d-datado" name="d-datado-cb"><span>Datado</span></label>
       </div>
     </div>`;
 }
@@ -703,13 +702,19 @@ function setupDispModalConditionals(tipo) {
     }
   }
 
-  // Sem data — todos os tipos que usam dataField()
-  const semDataCbGlobal = document.querySelector('#modal-disp-body #d-sem-data');
-  if (semDataCbGlobal && tipo !== 'SNG') {
-    semDataCbGlobal.addEventListener('change', () => {
-      const dataInput = document.querySelector('#modal-disp-body #d-data');
-      if (dataInput) dataInput.style.display = semDataCbGlobal.checked ? 'none' : '';
-    });
+  // Datado — mostra datepicker ao marcar (AVP, CVC, PICC, Permcath, Shilley)
+  if (['AVP','CVC','PICC','Permcath','Shilley'].includes(tipo)) {
+    const datadoCb = document.querySelector('#modal-disp-body #d-datado');
+    if (datadoCb) {
+      datadoCb.addEventListener('change', () => {
+        const container = document.querySelector('#modal-disp-body #d-data-container');
+        if (container) container.style.display = datadoCb.checked ? 'block' : 'none';
+        if (!datadoCb.checked) {
+          const dataInput = document.querySelector('#modal-disp-body #d-data');
+          if (dataInput) dataInput.value = dHoje();
+        }
+      });
+    }
   }
 }
 
@@ -719,115 +724,115 @@ function buildDispText(tipo) {
 
   switch (tipo) {
     case 'AVP': {
-      const local   = dModalRadio('d-local-avp');
-      const isSal   = document.querySelector('#modal-disp-body #d-sal')?.checked;
-      const isOcl   = document.querySelector('#modal-disp-body #d-ocl')?.checked;
-      const isInf   = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      const local    = dModalRadio('d-local-avp');
+      const isSal    = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl    = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isDatado = document.querySelector('#modal-disp-body #d-datado')?.checked;
+      const isInf    = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
+      const datePart = isDatado ? `, datado de ${dFormatDate(dModalGet('#d-data'))}` : '';
       if (!local) return erro('Selecione o local');
-      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
       if (isInf) {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        const statusParts = [];
-        if (isSal) statusParts.push('salinizado');
-        if (isOcl) statusParts.push('ocluído');
-        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        const parts = [];
+        if (isSal) parts.push('salinizado');
+        if (isOcl) parts.push('ocluído');
+        const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
         return `AVP em ${local}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
       }
-      const statusParts = [];
-      if (isSal) statusParts.push('salinizado');
-      if (isOcl) statusParts.push('ocluído');
-      return `AVP em ${local}, ${statusParts.join(' e ')}${datePart}`;
+      const parts = [];
+      if (isSal) parts.push('salinizado');
+      if (isOcl) parts.push('ocluído');
+      const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
+      return `AVP em ${local}${statusStr}${datePart}`;
     }
 
     case 'CVC': {
-      const local  = dModalRadio('d-local');
-      const lumens = dModalRadio('d-lumens');
-      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
-      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
-      const isInf  = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      const local    = dModalRadio('d-local');
+      const lumens   = dModalRadio('d-lumens');
+      const isSal    = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl    = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isDatado = document.querySelector('#modal-disp-body #d-datado')?.checked;
+      const isInf    = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
+      const datePart = isDatado ? `, datado de ${dFormatDate(dModalGet('#d-data'))}` : '';
       if (!local)  return erro('Selecione o local');
       if (!lumens) return erro('Selecione os lúmens');
-      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
       const base = `CVC ${lumens} lúmen em ${local}`;
       if (isInf) {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        const statusParts = [];
-        if (isSal) statusParts.push('salinizado');
-        if (isOcl) statusParts.push('ocluído');
-        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        const parts = [];
+        if (isSal) parts.push('salinizado');
+        if (isOcl) parts.push('ocluído');
+        const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
         return `${base}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
       }
-      const statusParts = [];
-      if (isSal) statusParts.push('salinizado');
-      if (isOcl) statusParts.push('ocluído');
-      return `${base}, ${statusParts.join(' e ')}${datePart}`;
+      const parts = [];
+      if (isSal) parts.push('salinizado');
+      if (isOcl) parts.push('ocluído');
+      const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
+      return `${base}${statusStr}${datePart}`;
     }
 
     case 'PICC': {
-      const membro = dModalRadio('d-membro');
-      const lumens = dModalRadio('d-lumens');
-      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
-      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
-      const isInf  = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      const membro   = dModalRadio('d-membro');
+      const lumens   = dModalRadio('d-lumens');
+      const isSal    = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl    = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isDatado = document.querySelector('#modal-disp-body #d-datado')?.checked;
+      const isInf    = document.querySelector('#modal-disp-body #d-inf-cb')?.checked;
+      const datePart = isDatado ? `, datado de ${dFormatDate(dModalGet('#d-data'))}` : '';
       if (!membro) return erro('Selecione o membro');
       if (!lumens) return erro('Selecione os lúmens');
-      if (!isSal && !isOcl && !isInf) return erro('Selecione pelo menos um status');
       const base = `PICC ${lumens} lúmen em ${membro}`;
       if (isInf) {
         const sol = dModalGet('#d-sol');
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        const statusParts = [];
-        if (isSal) statusParts.push('salinizado');
-        if (isOcl) statusParts.push('ocluído');
-        const statusStr = statusParts.length ? ', ' + statusParts.join(' e ') : '';
+        const parts = [];
+        if (isSal) parts.push('salinizado');
+        if (isOcl) parts.push('ocluído');
+        const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
         return `${base}, recebendo ${sol} a ${vel}ml/h${statusStr}${datePart}`;
       }
-      const statusParts = [];
-      if (isSal) statusParts.push('salinizado');
-      if (isOcl) statusParts.push('ocluído');
-      return `${base}, ${statusParts.join(' e ')}${datePart}`;
+      const parts = [];
+      if (isSal) parts.push('salinizado');
+      if (isOcl) parts.push('ocluído');
+      const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
+      return `${base}${statusStr}${datePart}`;
     }
 
     case 'Permcath': {
-      const local  = dModalRadio('d-local');
-      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
-      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      const local    = dModalRadio('d-local');
+      const isSal    = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl    = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isDatado = document.querySelector('#modal-disp-body #d-datado')?.checked;
+      const datePart = isDatado ? `, datado de ${dFormatDate(dModalGet('#d-data'))}` : '';
       if (!local) return erro('Selecione o local');
-      if (!isSal && !isOcl) return erro('Selecione pelo menos um status');
-      const statusParts = [];
-      if (isSal) statusParts.push('salinizado');
-      if (isOcl) statusParts.push('ocluído');
-      return `Permcath em ${local}, ${statusParts.join(' e ')}${datePart}`;
+      const parts = [];
+      if (isSal) parts.push('salinizado');
+      if (isOcl) parts.push('ocluído');
+      const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
+      return `Permcath em ${local}${statusStr}${datePart}`;
     }
 
     case 'Shilley': {
-      const local  = dModalRadio('d-local');
-      const isSal  = document.querySelector('#modal-disp-body #d-sal')?.checked;
-      const isOcl  = document.querySelector('#modal-disp-body #d-ocl')?.checked;
-      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
-      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
+      const local    = dModalRadio('d-local');
+      const isSal    = document.querySelector('#modal-disp-body #d-sal')?.checked;
+      const isOcl    = document.querySelector('#modal-disp-body #d-ocl')?.checked;
+      const isDatado = document.querySelector('#modal-disp-body #d-datado')?.checked;
+      const datePart = isDatado ? `, datado de ${dFormatDate(dModalGet('#d-data'))}` : '';
       if (!local) return erro('Selecione o local');
-      if (!isSal && !isOcl) return erro('Selecione pelo menos um status');
-      const statusParts = [];
-      if (isSal) statusParts.push('salinizado');
-      if (isOcl) statusParts.push('ocluído');
-      return `Shilley em ${local}, ${statusParts.join(' e ')}${datePart}`;
+      const parts = [];
+      if (isSal) parts.push('salinizado');
+      if (isOcl) parts.push('ocluído');
+      const statusStr = parts.length ? ', ' + parts.join(' e ') : '';
+      return `Shilley em ${local}${statusStr}${datePart}`;
     }
 
     case 'SNE': {
