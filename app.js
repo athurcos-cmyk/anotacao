@@ -1280,15 +1280,15 @@ function showSV() {
 }
 
 function hideSV() {
-  els.svScreen.style.display = 'none';
-  els.header.style.display = '';
-  els.main.style.display = '';
   // Restaurar form SV para próxima abertura
   const svPreview = $('#sv-preview-area');
   if (svPreview) svPreview.style.display = 'none';
   const svForm = document.querySelector('.sv-form');
   if (svForm) svForm.style.display = '';
   $('#sv-erro').textContent = '';
+
+  showForm(); // usa hideAllScreens + mostra header/main corretamente
+  updateBlocoView(); // garante que os blocos têm tamanho e posição corretos
 }
 
 function gerarTextoSV() {
