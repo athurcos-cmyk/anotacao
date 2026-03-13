@@ -29,14 +29,25 @@
       </div>
       <p class="login-subtitle">Assistente de anotações de enfermagem</p>
 
+      <div class="login-instrucao">
+        <div class="login-instrucao-item">
+          <span class="login-instrucao-icon">🔄</span>
+          <span><strong>Já tem conta?</strong> Digite seu código abaixo</span>
+        </div>
+        <div class="login-instrucao-item">
+          <span class="login-instrucao-icon">✨</span>
+          <span><strong>Primeira vez?</strong> Escolha um código novo de 3–6 letras/números</span>
+        </div>
+      </div>
+
       <div class="login-form">
         <div class="campo">
-          <label for="login-codigo" id="login-codigo-label">Digite seu código</label>
+          <label for="login-codigo" id="login-codigo-label">Seu código pessoal</label>
           <input type="text" id="login-codigo" class="login-code-input" maxlength="6"
-            placeholder="Ex: ANA1, MED2, JOS3"
+            placeholder="Ex: ANA1"
             autocomplete="off" spellcheck="false" autocapitalize="characters">
           <div id="login-codigo-status" class="login-status"></div>
-          <p class="login-dica" id="login-codigo-dica">Já tem um código? Digite-o. É a primeira vez? Escolha um código de 3 a 6 letras/números.</p>
+          <p class="login-dica" id="login-codigo-dica"></p>
         </div>
 
         <!-- PIN — aparece sempre depois de validar o código -->
