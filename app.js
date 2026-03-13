@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!existingCode) {
     showLogin();
   } else {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (!isMobile) showPCMode();
   }
 
@@ -459,6 +459,24 @@ function buildDispForm(tipo) {
         </div>
       </div>`;
 
+    case 'Pulseira': return `
+      <div class="campo">
+        <label>Membro <span class="obrigatorio">*</span></label>
+        <div class="radio-group">
+          ${['MSE','MSD','MIE','MID'].map(m => dRadio('d-membro', m, m)).join('')}
+        </div>
+      </div>
+      <div class="campo">
+        <label>Tipos de pulseira <span class="obrigatorio">*</span> <span class="hint-inline">(pode marcar mais de uma)</span></label>
+        <div class="radio-group vertical">
+          <label class="checkbox-label"><input type="checkbox" name="d-pulseira" value="identificação"><span>Identificação</span></label>
+          <label class="checkbox-label"><input type="checkbox" name="d-pulseira" value="risco de queda"><span>Risco de queda</span></label>
+          <label class="checkbox-label"><input type="checkbox" name="d-pulseira" value="alergia"><span>Alergia</span></label>
+          <label class="checkbox-label"><input type="checkbox" name="d-pulseira" value="precaução"><span>Precaução</span></label>
+          <label class="checkbox-label"><input type="checkbox" name="d-pulseira" value="preservação de membro"><span>Preservação de membro</span></label>
+        </div>
+      </div>`;
+
     case 'Dreno': return `
       <div class="campo">
         <label>Descreva o dreno <span class="obrigatorio">*</span></label>
@@ -651,6 +669,16 @@ function buildDispText(tipo) {
         return `${base}, aberta com frasco coletor, ${debStr}, de aspecto ${aspecto}`;
       }
       return null;
+    }
+
+    case 'Pulseira': {
+      const membro = dModalRadio('d-membro');
+      const tipos = [...document.querySelectorAll('#modal-disp-body input[name="d-pulseira"]:checked')]
+        .map(cb => cb.value);
+      if (!membro) return erro('Selecione o membro');
+      if (tipos.length === 0) return erro('Selecione pelo menos um tipo de pulseira');
+      const tiposStr = tipos.join(', ');
+      return `Pulseira${tipos.length > 1 ? 's' : ''} em ${membro}: ${tiposStr}`;
     }
 
     case 'Dreno':
@@ -1200,6 +1228,13 @@ function setupModal() {
     }
   });
 
+  $('#modal-whatsapp').addEventListener('click', () => {
+    if (currentModalAnot) {
+      const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(currentModalAnot.texto);
+      window.open(url, '_blank');
+    }
+  });
+
   $('#modal-deletar').addEventListener('click', () => {
     if (currentModalAnot) {
       showConfirm('Tem certeza que deseja deletar esta anotação?', () => {
@@ -1477,7 +1512,7 @@ function mostrarPreviewSV(texto) {
     $('#sv-btn-nova').addEventListener('click', () => {
       svPreview.style.display = 'none';
       document.querySelector('.sv-form').style.display = '';
-      // Limpar campos
+      // Limpar campos vitais
       ['sv-horario','sv-pa-sis','sv-pa-dia','sv-pam','sv-fc','sv-fr','sv-temp','sv-sat','sv-dextro','sv-dor-desc'].forEach(id => {
         const el = $(`#${id}`);
         if (el) el.value = '';
@@ -1485,6 +1520,9 @@ function mostrarPreviewSV(texto) {
       $$('input[name="sv-algias"]').forEach(r => r.checked = false);
       $('#sv-dor-container').style.display = 'none';
       $('#sv-erro').textContent = '';
+      // Limpar nome do paciente para nova aferição
+      const nomeEl = $('#sv-nome-paciente');
+      if (nomeEl) nomeEl.value = '';
       window.scrollTo({ top: 0 });
     });
   }
@@ -1609,6 +1647,46 @@ function clearDraft() {
 }
 
 // ===== LOGIN =====
+// Controle de tentativas de PIN (anti-brute-force)
+const PIN_MAX_ATTEMPTS = 3;
+const PIN_LOCKOUT_MS   = 60000; // 60 segundos
+let pinAttempts   = 0;
+let pinLockedUntil = 0;
+let pinCountdownInterval = null;
+
+function isPinLocked() {
+  return Date.now() < pinLockedUntil;
+}
+
+function registerPinFailure(erroEl, btnEntrar) {
+  pinAttempts++;
+  if (pinAttempts >= PIN_MAX_ATTEMPTS) {
+    pinLockedUntil = Date.now() + PIN_LOCKOUT_MS;
+    pinAttempts = 0;
+    startPinCountdown(erroEl, btnEntrar);
+  } else {
+    const restantes = PIN_MAX_ATTEMPTS - pinAttempts;
+    erroEl.textContent = `❌ PIN incorreto. ${restantes} tentativa${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''}.`;
+  }
+}
+
+function startPinCountdown(erroEl, btnEntrar) {
+  clearInterval(pinCountdownInterval);
+  btnEntrar.disabled = true;
+  const update = () => {
+    const remaining = Math.ceil((pinLockedUntil - Date.now()) / 1000);
+    if (remaining <= 0) {
+      clearInterval(pinCountdownInterval);
+      erroEl.textContent = 'Tente novamente.';
+      btnEntrar.disabled = false;
+    } else {
+      erroEl.textContent = `🔒 Muitas tentativas. Aguarde ${remaining}s para tentar novamente.`;
+    }
+  };
+  update();
+  pinCountdownInterval = setInterval(update, 1000);
+}
+
 function setupLogin() {
   const inputCodigo    = $('#login-codigo');
   const inputPin       = $('#login-pin');
@@ -1692,6 +1770,12 @@ function setupLogin() {
   });
 
   btnEntrar.addEventListener('click', async () => {
+    // Bloqueio anti-brute-force
+    if (isPinLocked()) {
+      startPinCountdown(erro, btnEntrar);
+      return;
+    }
+
     const code = inputCodigo.value.trim().toUpperCase();
     const pin  = inputPin ? inputPin.value.trim() : '';
     const nome = inputNome ? inputNome.value.trim() : '';
@@ -1720,20 +1804,20 @@ function setupLogin() {
         : { ok: true };
 
       if (check.offline) {
-        // Sem Firebase — não consegue verificar; bloqueia por segurança
-        erro.textContent = 'Sem conexão. Não foi possível verificar o PIN. Tente novamente.';
+        erro.textContent      = 'Sem conexão. Não foi possível verificar o PIN. Tente novamente.';
         btnEntrar.disabled    = false;
         btnEntrar.textContent = 'Entrar';
         return;
       }
       if (!check.ok) {
-        erro.textContent      = '❌ PIN incorreto. Tente novamente.';
         inputPin.value        = '';
         btnEntrar.disabled    = false;
         btnEntrar.textContent = 'Entrar';
+        registerPinFailure(erro, btnEntrar);
         return;
       }
-      // PIN correto — carrega anotações da nuvem
+      // PIN correto — reseta contagem e carrega anotações
+      pinAttempts = 0;
       if (window.loadAnnotationsFromCloud) {
         await window.loadAnnotationsFromCloud(code);
       }
@@ -1759,7 +1843,7 @@ function hideLogin() {
   if (els.loginScreen) els.loginScreen.style.display = 'none';
   if (els.appDiv)      els.appDiv.style.display = '';
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (!isMobile) {
     showPCMode();
   } else {

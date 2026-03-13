@@ -44,7 +44,7 @@
           <label for="login-pin" id="login-pin-label">Crie um PIN de 4 dígitos</label>
           <input type="password" id="login-pin" class="login-pin-input" maxlength="4"
             placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-          <p class="login-dica" id="login-pin-dica">Anote seu PIN — será pedido em cada acesso.</p>
+          <p class="login-dica" id="login-pin-dica">Anote seu PIN — será pedido em cada acesso.<br><strong>⚠️ Evite PINs óbvios:</strong> 1234, 0000, 1111 ou data de nascimento.</p>
         </div>
 
         <div class="campo" id="login-nome-container" style="display:none">
@@ -240,6 +240,7 @@
             <button type="button" class="btn-tipo" data-tipo="AVP">AVP</button>
             <button type="button" class="btn-tipo" data-tipo="CVC">CVC</button>
             <button type="button" class="btn-tipo" data-tipo="PICC">PICC</button>
+            <button type="button" class="btn-tipo" data-tipo="Pulseira">Pulseira</button>
             <button type="button" class="btn-tipo" data-tipo="Permcath">Permcath</button>
             <button type="button" class="btn-tipo" data-tipo="Shilley">Shilley</button>
             <button type="button" class="btn-tipo" data-tipo="SNE">SNE</button>
@@ -270,6 +271,7 @@
             <div class="radio-group vertical">
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="fralda"><span>Fralda</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="comadre"><span>Comadre</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="diurese" value="papagaio"><span>Papagaio</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="banheiro"><span>Banheiro</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="SVD"><span>SVD</span></label>
               <label class="checkbox-label"><input type="checkbox" name="diurese" value="não avaliado"><span>Não avaliado</span></label>
@@ -502,6 +504,7 @@
         <div id="modal-text" class="modal-text"></div>
         <div class="modal-actions">
           <button type="button" class="btn-action" id="modal-copiar">Copiar</button>
+          <button type="button" class="btn-action btn-whatsapp" id="modal-whatsapp">WhatsApp</button>
           <button type="button" class="btn-action btn-danger" id="modal-deletar">Deletar</button>
         </div>
       </div>
