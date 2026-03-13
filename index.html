@@ -305,8 +305,18 @@
           <h2>Refere</h2>
 
           <div class="campo">
-            <label for="evacuacao">Última evacuação <span class="obrigatorio">*</span></label>
-            <input type="text" id="evacuacao" placeholder="Ex: ontem (06/03), hoje de manhã, há 3 dias">
+            <label>Última evacuação <span class="obrigatorio">*</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-btn"><input type="radio" name="evacuacao-opcao" value="hoje" required><span>Hoje</span></label>
+              <label class="radio-btn"><input type="radio" name="evacuacao-opcao" value="ontem"><span>Ontem</span></label>
+              <label class="radio-btn"><input type="radio" name="evacuacao-opcao" value="data"><span>Escolher data</span></label>
+              <label class="radio-btn"><input type="radio" name="evacuacao-opcao" value="nao-avaliado"><span>Não avaliado</span></label>
+            </div>
+          </div>
+
+          <div class="campo condicional" id="evacuacao-data-container" style="display:none">
+            <label for="evacuacao-data">Data da última evacuação <span class="obrigatorio">*</span></label>
+            <input type="date" id="evacuacao-data">
           </div>
 
           <div class="campo">

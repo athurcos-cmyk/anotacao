@@ -128,6 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDraftAutoSave();
   requestAnimationFrame(() => updateBlocoView());
 
+  // Limpeza automática de anotações com mais de 60 dias
+  cleanupOldAnnotations(60);
+
   const existingCode = localStorage.getItem('sync_code');
   if (!existingCode || !isSessionValid()) {
     // Sem código ou sessão expirada → login
@@ -241,6 +244,15 @@ function setupConditionals() {
         $('#acompanhante-nome').value = '';
         $('#acompanhante-parentesco').value = '';
       }
+    });
+  });
+
+  // Evacuação — mostrar datepicker quando "Escolher data" for selecionado
+  $$('input[name="evacuacao-opcao"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const container = $('#evacuacao-data-container');
+      container.style.display = radio.value === 'data' ? 'block' : 'none';
+      if (radio.value !== 'data') $('#evacuacao-data').value = '';
     });
   });
 
@@ -1005,9 +1017,12 @@ function validateBloco2() {
 function validateBloco4() {
   const erros = [];
 
-  if (!$('#evacuacao').value.trim()) {
+  const evacOpcao = getRadioValue('evacuacao-opcao');
+  if (!evacOpcao) {
     erros.push('Informe a última evacuação');
-    $('#evacuacao').closest('.campo').classList.add('invalido');
+  } else if (evacOpcao === 'data' && !$('#evacuacao-data').value) {
+    erros.push('Selecione a data da última evacuação');
+    $('#evacuacao-data').closest('.campo').classList.add('invalido');
   }
 
   const diureseChecked = getCheckedValues('diurese');
@@ -1128,8 +1143,20 @@ function gerarTexto() {
   // BLOCO 4 - Refere
   const refereParts = [];
 
-  const evacuacao = $('#evacuacao').value.trim();
-  refereParts.push(`Refere \u00faltima evacua\u00e7\u00e3o a ${evacuacao}`);
+  const evacOpcao = getRadioValue('evacuacao-opcao');
+  if (evacOpcao === 'hoje') {
+    refereParts.push('Refere \u00faltima evacua\u00e7\u00e3o hoje');
+  } else if (evacOpcao === 'ontem') {
+    refereParts.push('Refere \u00faltima evacua\u00e7\u00e3o ontem');
+  } else if (evacOpcao === 'data') {
+    const dataEvac = $('#evacuacao-data').value;
+    if (dataEvac) {
+      const [ano, mes, dia] = dataEvac.split('-');
+      refereParts.push(`Refere \u00faltima evacua\u00e7\u00e3o em ${dia}/${mes}`);
+    }
+  } else if (evacOpcao === 'nao-avaliado') {
+    refereParts.push('Evacua\u00e7\u00e3o n\u00e3o avaliada');
+  }
 
   const diureseVals = getCheckedValues('diurese');
   if (diureseVals.includes('não avaliado')) {
@@ -1488,6 +1515,21 @@ function deletarAnotacao(timestamp) {
   if (window.syncDeleteAnnotation) {
     window.syncDeleteAnnotation(timestamp);
   }
+}
+
+function cleanupOldAnnotations(dias) {
+  const limite = (dias || 60) * 24 * 60 * 60 * 1000;
+  const agora  = Date.now();
+  let anotacoes = getAnotacoes();
+  const antigas = anotacoes.filter(a => (agora - a.timestamp) > limite);
+  if (antigas.length === 0) return;
+  const novas = anotacoes.filter(a => (agora - a.timestamp) <= limite);
+  localStorage.setItem('anotacoes_hc', JSON.stringify(novas));
+  // Apagar do Firebase também
+  antigas.forEach(a => {
+    if (window.syncDeleteAnnotation) window.syncDeleteAnnotation(a.timestamp);
+  });
+  console.log(`[Cleanup] ${antigas.length} anotação(ões) com mais de ${dias} dias removida(s).`);
 }
 
 // ===== CLIPBOARD =====
