@@ -791,6 +791,14 @@ textarea {
   line-height: 1;
 }
 
+.sync-code-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sync-code-reveal,
 .sync-code-copy {
   background: rgba(30, 136, 229, 0.15);
   border: 1px solid rgba(30, 136, 229, 0.4);
@@ -804,7 +812,26 @@ textarea {
   justify-content: center;
   flex-shrink: 0;
 }
+.sync-code-reveal:active,
 .sync-code-copy:active { background: rgba(30, 136, 229, 0.3); }
+
+/* Botão Sair PC */
+.btn-pc-sair {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(239, 83, 80, 0.12);
+  border: 1px solid rgba(239, 83, 80, 0.35);
+  border-radius: 10px;
+  color: #EF5350;
+  cursor: pointer;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-pc-sair:active { background: rgba(239, 83, 80, 0.25); }
+.pc-mode-selector { position: relative; }
 
 .sync-code-hint {
   font-size: 12px;

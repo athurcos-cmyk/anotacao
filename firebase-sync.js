@@ -120,11 +120,13 @@ async function processOfflineQueue() {
   }
 }
 
-// ── Hash de PIN (SHA-256, retorna hex) ────────
-async function hashPin(pin) {
+// ── Hash de PIN (SHA-256 com código como salt) ────────
+// Formato: SHA-256(CODE:pin) — code é o salt para evitar hashes iguais entre usuários com mesmo PIN
+async function hashPin(code, pin) {
+  const input = `${code.toUpperCase().trim()}:${pin.trim()}`;
   const buf = await crypto.subtle.digest(
     'SHA-256',
-    new TextEncoder().encode(pin.trim())
+    new TextEncoder().encode(input)
   );
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -152,7 +154,7 @@ async function registerCode(code, nome, pin) {
   if (!db) return false;
   const { ref, set, instance } = db;
   try {
-    const pinHash = pin ? await hashPin(pin) : null;
+    const pinHash = pin ? await hashPin(code, pin) : null;
     await set(ref(instance, `users/${code.toUpperCase()}`), {
       nome: nome || '',
       pin_hash: pinHash || '',
@@ -173,7 +175,7 @@ async function verifyPin(code, pin) {
     if (!snap.exists()) return { ok: false };
     const stored = snap.val().pin_hash || '';
     if (!stored) return { ok: true }; // código sem PIN registrado → permite (retrocompatibilidade)
-    const entered = await hashPin(pin);
+    const entered = await hashPin(code, pin);
     return { ok: entered === stored };
   } catch {
     return { ok: false, offline: true };

@@ -365,9 +365,15 @@
           <span class="sync-code-label">Seu código para o PC</span>
           <span class="sync-code-value" id="sync-code-display">····</span>
         </div>
-        <button type="button" class="sync-code-copy" id="btn-copiar-codigo" title="Copiar código">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
+        <div class="sync-code-actions">
+          <button type="button" class="sync-code-reveal" id="btn-revelar-codigo" title="Mostrar/ocultar código" aria-label="Mostrar código">
+            <svg id="icon-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="icon-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+          <button type="button" class="sync-code-copy" id="btn-copiar-codigo" title="Copiar código">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
       </div>
       <p class="sync-code-hint">Digite este código em <strong>anotacao-enf.vercel.app/pc</strong> para ver suas anotações no computador</p>
 
@@ -384,6 +390,7 @@
           <h1>Anotação HC</h1>
         </div>
         <p class="pc-subtitle">Como você está acessando agora?</p>
+        <button type="button" id="btn-pc-sair" class="btn-pc-sair" title="Sair e limpar sessão">🚪 Sair</button>
         <div class="pc-modo-btns">
           <button type="button" id="btn-modo-celular" class="btn-modo">
             <span class="btn-modo-icon">📱</span>

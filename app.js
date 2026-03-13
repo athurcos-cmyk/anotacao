@@ -31,6 +31,31 @@ const els = {
   appDiv: $('#app')
 };
 
+// ===== SESSÃO =====
+const SESSION_DURATION_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+function isSessionValid() {
+  const loginTime = localStorage.getItem('login_time');
+  if (!loginTime) return false;
+  return (Date.now() - parseInt(loginTime, 10)) < SESSION_DURATION_MS;
+}
+
+function clearSession() {
+  localStorage.removeItem('sync_code');
+  localStorage.removeItem('login_time');
+}
+
+function startSessionWatcher() {
+  // Verifica a cada minuto se a sessão expirou
+  setInterval(() => {
+    if (localStorage.getItem('sync_code') && !isSessionValid()) {
+      clearSession();
+      showToast('Sessão expirada. Faça login novamente.');
+      setTimeout(() => location.reload(), 1500);
+    }
+  }, 60 * 1000);
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
@@ -46,13 +71,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDraftAutoSave();
   updateBlocoView();
 
-  // Se já tem código salvo → vai direto pro app
   const existingCode = localStorage.getItem('sync_code');
-  if (!existingCode) {
+  if (!existingCode || !isSessionValid()) {
+    // Sem código ou sessão expirada → login
+    clearSession();
     showLogin();
   } else {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (!isMobile) showPCMode();
+    startSessionWatcher();
   }
 
   window.addEventListener('resize', () => updateBlocoView());
@@ -1108,6 +1135,26 @@ function setupHistorico() {
   $('#btn-historico').addEventListener('click', showHistorico);
   $('#btn-voltar-historico').addEventListener('click', showForm);
 
+  // Revelar/ocultar código no banner
+  let codigoRevelado = false;
+  $('#btn-revelar-codigo').addEventListener('click', () => {
+    const code = localStorage.getItem('sync_code') || '????';
+    const display = $('#sync-code-display');
+    codigoRevelado = !codigoRevelado;
+    display.textContent = codigoRevelado ? code : maskCode(code);
+    $('#icon-eye-show').style.display = codigoRevelado ? 'none' : '';
+    $('#icon-eye-hide').style.display = codigoRevelado ? '' : 'none';
+    // Auto-oculta após 5 segundos
+    if (codigoRevelado) {
+      setTimeout(() => {
+        codigoRevelado = false;
+        if (display) display.textContent = maskCode(code);
+        const s = $('#icon-eye-show'); const h = $('#icon-eye-hide');
+        if (s) s.style.display = ''; if (h) h.style.display = 'none';
+      }, 5000);
+    }
+  });
+
   $('#btn-copiar-codigo').addEventListener('click', () => {
     const code = (window.getSyncCode && window.getSyncCode()) || localStorage.getItem('sync_code') || '';
     copyText(code);
@@ -1136,15 +1183,21 @@ function setupHistorico() {
   });
 }
 
+function maskCode(code) {
+  if (!code || code === '????') return '????';
+  const visible = Math.max(1, Math.floor(code.length / 2));
+  return code.slice(0, visible) + '*'.repeat(code.length - visible);
+}
+
 function showHistorico() {
   hideAllScreens();
   els.historicoScreen.style.display = 'block';
 
-  // Mostra o código de sync
+  // Mostra o código mascarado por padrão
   const codeEl = $('#sync-code-display');
   if (codeEl) {
-    const code = (window.getSyncCode && window.getSyncCode()) || localStorage.getItem('sync_code') || '????';
-    codeEl.textContent = code;
+    const code = localStorage.getItem('sync_code') || '????';
+    codeEl.textContent = maskCode(code);
   }
 
   renderHistorico();
@@ -1830,6 +1883,8 @@ function setupLogin() {
     // offline: entra sem verificar (sem outra opção)
 
     localStorage.setItem('sync_code', code);
+    localStorage.setItem('login_time', Date.now().toString());
+    startSessionWatcher();
     hideLogin();
   });
 }
@@ -1870,6 +1925,18 @@ function escapeHtml(str) {
 
 // ===== PC MODE =====
 function setupPCMode() {
+  // Botão Sair → limpa sessão e volta ao login
+  $('#btn-pc-sair').addEventListener('click', () => {
+    clearSession();
+    $('#pc-lista').innerHTML = '';
+    $('#pc-erro').textContent = '';
+    if ($('#pc-codigo')) $('#pc-codigo').value = '';
+    if ($('#pc-pin')) $('#pc-pin').value = '';
+    $('#pc-view').style.display = 'none';
+    $('#pc-mode-selector').style.display = 'flex';
+    showLogin();
+  });
+
   // Botão Celular → vai pro form normal
   $('#btn-modo-celular').addEventListener('click', () => {
     showForm();
