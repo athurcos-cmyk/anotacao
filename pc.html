@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anotação HC — Ver no PC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0A1628;
+      --surface:   #111E35;
+      --surface2:  #1A2D4A;
+      --border:    #1E3A5F;
+      --accent:    #2D7DD2;
+      --accent-h:  #3D8FE8;
+      --green:     #22C55E;
+      --text:      #E8EDF5;
+      --text-dim:  #7A9CBF;
+      --radius:    12px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    /* ── Header ── */
+    .pc-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .pc-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .pc-header p {
+      color: var(--text-dim);
+      font-size: 15px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ── Entrada de código ── */
+    .code-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .code-form label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .code-input-row {
+      display: flex;
+      gap: 12px;
+    }
+    .code-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      padding: 14px 20px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .code-input::placeholder { color: var(--text-dim); letter-spacing: 0.1em; font-size: 20px; }
+    .code-input:focus { border-color: var(--accent); }
+
+    .btn-buscar {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 0 28px;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-buscar:hover { background: var(--accent-h); }
+    .btn-buscar:disabled { opacity: .5; cursor: default; }
+
+    .erro-code {
+      color: #F87171;
+      font-size: 14px;
+      min-height: 18px;
+    }
+
+    /* ── Lista de anotações ── */
+    #lista-anotacoes { margin-top: 32px; display: flex; flex-direction: column; gap: 20px; }
+
+    .anot-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    .anot-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(45,125,210,.12);
+      border-bottom: 1px solid var(--border);
+    }
+    .anot-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .anot-card-time {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .anot-card-body {
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .anot-card-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-copiar-anot {
+      width: 100%;
+      background: var(--green);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-copiar-anot:hover { opacity: .9; }
+    .btn-copiar-anot:active { transform: scale(.98); }
+    .btn-copiar-anot.copiado {
+      background: #16A34A;
+    }
+
+    /* ── Estado vazio / loading ── */
+    .estado {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--text-dim);
+    }
+    .estado-icon { font-size: 40px; margin-bottom: 12px; }
+    .estado p { font-size: 15px; }
+
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Rodapé ── */
+    .pc-footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .pc-footer a { color: var(--accent); text-decoration: none; }
+    .pc-footer a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    #pc-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1E3A5F;
+      border: 1px solid var(--accent);
+      border-radius: 24px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 24px;
+      transition: transform .3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #pc-toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="pc-header">
+    <h1>Anotação HC</h1>
+    <p>Digite o código do celular para ver as anotações</p>
+  </div>
+
+  <div class="card">
+    <div class="code-form">
+      <label for="input-codigo">Código de sincronização</label>
+      <div class="code-input-row">
+        <input
+          type="text"
+          id="input-codigo"
+          class="code-input"
+          maxlength="4"
+          placeholder="XXXX"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button type="button" class="btn-buscar" id="btn-buscar">Buscar</button>
+      </div>
+      <div class="erro-code" id="erro-code"></div>
+    </div>
+
+    <div id="lista-anotacoes"></div>
+  </div>
+
+  <div class="pc-footer">
+    <p>Abrir o app no celular → <a href="https://anotacao-enf.vercel.app" target="_blank">anotacao-enf.vercel.app</a></p>
+  </div>
+
+  <div id="pc-toast"></div>
+
+  <script type="module">
+    // ── Firebase ──────────────────────────────────────────────
+    import { initializeApp }               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase, ref, get }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+    const FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyCHW_CTip-v1oOsbYvMJ79Ql1JvbUY7NC4",
+      authDomain:        "anotacao-hc.firebaseapp.com",
+      databaseURL:       "https://anotacao-hc-default-rtdb.firebaseio.com",
+      projectId:         "anotacao-hc",
+      storageBucket:     "anotacao-hc.firebasestorage.app",
+      messagingSenderId: "879065842847",
+      appId:             "1:879065842847:web:ae2e8ac6c3fe44388a4eaa"
+    };
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db  = getDatabase(app);
+
+    // ── DOM ───────────────────────────────────────────────────
+    const inputCodigo  = document.getElementById('input-codigo');
+    const btnBuscar    = document.getElementById('btn-buscar');
+    const erroCodigo   = document.getElementById('erro-code');
+    const listaEl      = document.getElementById('lista-anotacoes');
+    const toast        = document.getElementById('pc-toast');
+
+    // Formata input: só letras maiúsculas
+    inputCodigo.addEventListener('input', () => {
+      inputCodigo.value = inputCodigo.value.toUpperCase().replace(/[^A-Z]/g, '');
+    });
+
+    // Enter dispara busca
+    inputCodigo.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') buscar();
+    });
+
+    btnBuscar.addEventListener('click', buscar);
+
+    // ── Busca ─────────────────────────────────────────────────
+    async function buscar() {
+      const code = inputCodigo.value.trim().toUpperCase();
+      erroCodigo.textContent = '';
+
+      if (code.length !== 4) {
+        erroCodigo.textContent = 'O código deve ter 4 letras.';
+        return;
+      }
+
+      listaEl.innerHTML = `
+        <div class="estado">
+          <div class="spinner"></div>
+          <p>Buscando anotações...</p>
+        </div>`;
+
+      btnBuscar.disabled = true;
+
+      try {
+        const snapshot = await get(ref(db, `sync/${code}`));
+
+        if (!snapshot.exists()) {
+          listaEl.innerHTML = `
+            <div class="estado">
+              <div class="estado-icon">📭</div>
+              <p>Nenhuma anotação encontrada para o código <strong>${code}</strong>.</p>
+            </div>`;
+          return;
+        }
+
+        const dados = snapshot.val();
+        // Ordenar por timestamp mais recente
+        const lista = Object.values(dados).sort((a, b) => b.timestamp - a.timestamp);
+
+        renderLista(lista);
+
+      } catch (err) {
+        listaEl.innerHTML = `
+          <div class="estado">
+            <div class="estado-icon">⚠️</div>
+            <p>Erro ao buscar: ${err.message}</p>
+          </div>`;
+      } finally {
+        btnBuscar.disabled = false;
+      }
+    }
+
+    // ── Renderizar ────────────────────────────────────────────
+    function renderLista(lista) {
+      if (lista.length === 0) {
+        listaEl.innerHTML = `
+          <div class="estado">
+            <div class="estado-icon">📭</div>
+            <p>Nenhuma anotação encontrada.</p>
+          </div>`;
+        return;
+      }
+
+      listaEl.innerHTML = '';
+
+      lista.forEach((anot, i) => {
+        const data  = anot.timestamp ? new Date(anot.timestamp) : null;
+        const tempo = data ? data.toLocaleString('pt-BR', {
+          day: '2-digit', month: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        }) : '';
+
+        const card = document.createElement('div');
+        card.className = 'anot-card';
+        card.innerHTML = `
+          <div class="anot-card-header">
+            <span class="anot-card-title">${anot.nome || 'Anotação'}</span>
+            <span class="anot-card-time">${tempo}</span>
+          </div>
+          <div class="anot-card-body">${escapeHtml(anot.texto || '')}</div>
+          <div class="anot-card-footer">
+            <button class="btn-copiar-anot" data-idx="${i}">📋 Copiar texto</button>
+          </div>
+        `;
+
+        card.querySelector('.btn-copiar-anot').addEventListener('click', function () {
+          navigator.clipboard.writeText(anot.texto || '').then(() => {
+            this.textContent = '✅ Copiado!';
+            this.classList.add('copiado');
+            showToast('Texto copiado!');
+            setTimeout(() => {
+              this.textContent = '📋 Copiar texto';
+              this.classList.remove('copiado');
+            }, 2500);
+          });
+        });
+
+        listaEl.appendChild(card);
+      });
+    }
+
+    // ── Utilitários ───────────────────────────────────────────
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+  </script>
+</body>
+</html>
