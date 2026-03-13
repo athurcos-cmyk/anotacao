@@ -270,7 +270,11 @@ function infusaoFields() {
 function dataField() {
   return `
     <div class="campo">
-      <label>Data <span class="obrigatorio">*</span></label>
+      <label>Data do curativo</label>
+      <label class="checkbox-label" style="margin-bottom:8px">
+        <input type="checkbox" id="d-sem-data">
+        <span>Sem data / não datado</span>
+      </label>
       <input type="date" id="d-data" value="${dHoje()}">
     </div>`;
 }
@@ -502,7 +506,16 @@ function setupDispModalConditionals(tipo) {
       });
     });
 
-    // SNG débito
+    // Checkbox "Sem data" — esconde/mostra o campo de data
+  const semDataCb = document.querySelector('#modal-disp-body #d-sem-data');
+  if (semDataCb) {
+    semDataCb.addEventListener('change', () => {
+      const dataInput = document.querySelector('#modal-disp-body #d-data');
+      if (dataInput) dataInput.style.display = semDataCb.checked ? 'none' : '';
+    });
+  }
+
+  // SNG débito
     $$('#modal-disp-body input[name="d-debito"]').forEach(r => {
       r.addEventListener('change', () => {
         const ml = document.querySelector('#modal-disp-body #d-debito-ml');
@@ -520,7 +533,8 @@ function buildDispText(tipo) {
     case 'AVP': {
       const membro = dModalRadio('d-membro');
       const status = dModalRadio('d-status');
-      const data = dFormatDate(dModalGet('#d-data'));
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!membro) return erro('Selecione o membro');
       if (!status) return erro('Selecione o status');
       if (status === 'inf') {
@@ -528,16 +542,17 @@ function buildDispText(tipo) {
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `AVP em ${membro}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+        return `AVP em ${membro}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
       }
-      return `AVP em ${membro}, salinizado e ocluído, datado de ${data}`;
+      return `AVP em ${membro}, salinizado e ocluído${datePart}`;
     }
 
     case 'CVC': {
       const local = dModalRadio('d-local');
       const lumens = dModalRadio('d-lumens');
       const status = dModalRadio('d-status');
-      const data = dFormatDate(dModalGet('#d-data'));
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
       if (!lumens) return erro('Selecione os lúmens');
       if (!status) return erro('Selecione o status');
@@ -547,16 +562,17 @@ function buildDispText(tipo) {
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
       }
-      return `${base}, salinizado e ocluído, datado de ${data}`;
+      return `${base}, salinizado e ocluído${datePart}`;
     }
 
     case 'PICC': {
       const membro = dModalRadio('d-membro');
       const lumens = dModalRadio('d-lumens');
       const status = dModalRadio('d-status');
-      const data = dFormatDate(dModalGet('#d-data'));
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!membro) return erro('Selecione o membro');
       if (!lumens) return erro('Selecione os lúmens');
       if (!status) return erro('Selecione o status');
@@ -566,29 +582,31 @@ function buildDispText(tipo) {
         const vel = dModalGet('#d-vel');
         if (!sol) return erro('Informe a solução');
         if (!vel) return erro('Informe a velocidade');
-        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído, datado de ${data}`;
+        return `${base}, recebendo ${sol} a ${vel}ml/h, ocluído${datePart}`;
       }
-      return `${base}, salinizado e ocluído, datado de ${data}`;
+      return `${base}, salinizado e ocluído${datePart}`;
     }
 
     case 'Permcath': {
       const local = dModalRadio('d-local');
       const status = dModalRadio('d-status');
-      const data = dFormatDate(dModalGet('#d-data'));
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
       if (!status) return erro('Selecione o status');
       const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
-      return `Permcath em ${local}, ${est}, datado de ${data}`;
+      return `Permcath em ${local}, ${est}${datePart}`;
     }
 
     case 'Shilley': {
       const local = dModalRadio('d-local');
       const status = dModalRadio('d-status');
-      const data = dFormatDate(dModalGet('#d-data'));
+      const semData = document.querySelector('#modal-disp-body #d-sem-data')?.checked;
+      const datePart = semData ? '' : `, datado de ${dFormatDate(dModalGet('#d-data'))}`;
       if (!local) return erro('Selecione o local');
       if (!status) return erro('Selecione o status');
       const est = status === 'sal' ? 'salinizado e ocluído' : 'ocluído';
-      return `Shilley em ${local}, ${est}, datado de ${data}`;
+      return `Shilley em ${local}, ${est}${datePart}`;
     }
 
     case 'SNE': {
