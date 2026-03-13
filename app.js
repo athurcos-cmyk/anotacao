@@ -1898,6 +1898,11 @@ function setupLogin() {
       if (window.registerCode) {
         await window.registerCode(code, nome, pin);
       }
+      // Mesmo sendo "novo" cadastro, pode haver anotações antigas no sync/{code}
+      // (ex: users/ foi apagado mas sync/ ainda existe)
+      if (window.loadAnnotationsFromCloud) {
+        await window.loadAnnotationsFromCloud(code);
+      }
     }
     // offline: entra sem verificar (sem outra opção)
 
