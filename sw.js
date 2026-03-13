@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anotacao-v33';
+const CACHE_NAME = 'anotacao-v34';
 const ASSETS = [
   './',
   './index.html',

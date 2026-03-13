@@ -1231,30 +1231,26 @@ function gerarTexto() {
     apresentaParts.push(`${acompGen} de ${parentesco} ${nome}`);
   }
 
+  // Obs do bloco 2 — entra na frase do Apresenta com "apresenta ..."
+  const obsApresenta = $('#obs-apresenta').value.trim();
+  if (obsApresenta) {
+    const obsLower = obsApresenta.charAt(0).toLowerCase() + obsApresenta.slice(1);
+    apresentaParts.push(`apresenta ${obsLower}`);
+  }
+
   // Capitalize first letter (after period it starts a new sentence)
   let apresentaText = apresentaParts.join(', ');
   apresentaText = apresentaText.charAt(0).toUpperCase() + apresentaText.slice(1);
   parts.push(apresentaText + '.');
 
-  // BLOCO 3 - Mantem (omite se vazio) — MAR: Mantem vem antes de Apresenta observacoes
+  // BLOCO 3 - Mantem (omite se vazio)
   if (state.dispositivos.length > 0) {
     const dispTexto = state.dispositivos.map((d, i) => {
-      if (i === 0) {
-        return `Mant\u00e9m ${d}`;
-      }
+      if (i === 0) return `Mant\u00e9m ${d}`;
       return d;
     }).join('; ');
     parts.push(dispTexto + '.');
   }
-
-  // Obs apresenta (ex: hematomas) — vem depois dos dispositivos
-  const obsApresenta = $('#obs-apresenta').value.trim();
-  if (obsApresenta) {
-    const obsText = obsApresenta.charAt(0).toUpperCase() + obsApresenta.slice(1);
-    parts.push(obsText + '.');
-  }
-
-  // Pulseira (if in dispositivos, it's already there)
 
   // BLOCO 4 - Refere
   const refereParts = [];
@@ -1305,13 +1301,14 @@ function gerarTexto() {
     }
   }
 
-  parts.push(refereParts.join(', ') + '.');
-
-  // Queixas
+  // Queixas do bloco 4 — entram na frase Refere
   const queixas = $('#queixas').value.trim();
   if (queixas) {
-    parts.push(`Refere ${queixas}.`);
+    const queixasLower = queixas.charAt(0).toLowerCase() + queixas.slice(1);
+    refereParts.push(queixasLower);
   }
+
+  parts.push(refereParts.join(', ') + '.');
 
   // BLOCO 5 - Fechamento (usa o valor editável do textarea)
   const fechamentoEditado = els.fechamentoPreview.value.trim();
