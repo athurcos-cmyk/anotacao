@@ -31,6 +31,62 @@ const els = {
   appDiv: $('#app')
 };
 
+// ===== PWA INSTALL BANNER =====
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  // Não mostra se já foi dispensado antes
+  if (localStorage.getItem('install_dismissed')) return;
+  // Não mostra se já está instalado (standalone)
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+
+  const banner = document.getElementById('install-banner');
+  if (!banner) return;
+  banner.style.display = 'flex';
+}
+
+function setupInstallBanner() {
+  const banner   = document.getElementById('install-banner');
+  const btnInst  = document.getElementById('btn-instalar');
+  const btnDism  = document.getElementById('btn-install-dismiss');
+  if (!banner || !btnInst || !btnDism) return;
+
+  // iOS: não tem beforeinstallprompt, mostra instrução manual
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  if (isIOS && !isStandalone && !localStorage.getItem('install_dismissed')) {
+    const sub = document.getElementById('install-banner-sub');
+    if (sub) sub.textContent = 'Toque em Compartilhar → "Adicionar à Tela Inicial"';
+    btnInst.textContent = 'Como instalar?';
+    btnInst.addEventListener('click', () => {
+      alert('No iPhone/iPad:\n1. Toque no ícone de compartilhar (□↑) na barra do Safari\n2. Role e toque em "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
+    });
+    banner.style.display = 'flex';
+  }
+
+  btnInst.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      banner.style.display = 'none';
+    }
+    deferredInstallPrompt = null;
+  });
+
+  btnDism.addEventListener('click', () => {
+    banner.style.display = 'none';
+    localStorage.setItem('install_dismissed', '1');
+  });
+}
+
 // ===== SESSÃO =====
 const SESSION_DURATION_MS = 6 * 60 * 60 * 1000; // 6 horas
 
@@ -58,6 +114,7 @@ function startSessionWatcher() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+  setupInstallBanner();
   setupNavigation();
   setupConditionals();
   setupDispositivos();
