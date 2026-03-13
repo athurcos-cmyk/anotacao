@@ -120,6 +120,15 @@ async function processOfflineQueue() {
   }
 }
 
+// ── Hash de PIN (SHA-256, retorna hex) ────────
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(pin.trim())
+  );
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ── Verificar se código está disponível ──────
 async function checkCode(code) {
   if (!db) {
@@ -138,18 +147,36 @@ async function checkCode(code) {
   }
 }
 
-// ── Registrar novo código ─────────────────────
-async function registerCode(code, nome) {
+// ── Registrar novo código com PIN ─────────────
+async function registerCode(code, nome, pin) {
   if (!db) return false;
   const { ref, set, instance } = db;
   try {
+    const pinHash = pin ? await hashPin(pin) : null;
     await set(ref(instance, `users/${code.toUpperCase()}`), {
       nome: nome || '',
+      pin_hash: pinHash || '',
       createdAt: Date.now()
     });
     return true;
   } catch {
     return false;
+  }
+}
+
+// ── Verificar PIN de um código existente ──────
+async function verifyPin(code, pin) {
+  if (!db) return { ok: false, offline: true };
+  const { ref, get, instance } = db;
+  try {
+    const snap = await get(ref(instance, `users/${code.toUpperCase()}`));
+    if (!snap.exists()) return { ok: false };
+    const stored = snap.val().pin_hash || '';
+    if (!stored) return { ok: true }; // código sem PIN registrado → permite (retrocompatibilidade)
+    const entered = await hashPin(pin);
+    return { ok: entered === stored };
+  } catch {
+    return { ok: false, offline: true };
   }
 }
 
@@ -198,5 +225,6 @@ window.syncFetchByCode         = syncFetchByCode;
 window.getSyncCode             = getSyncCode;
 window.checkCode               = checkCode;
 window.registerCode            = registerCode;
+window.verifyPin               = verifyPin;
 window.loadAnnotationsFromCloud = loadAnnotationsFromCloud;
 window.SYNC_ENABLED       = SYNC_ENABLED;

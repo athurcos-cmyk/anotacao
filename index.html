@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=18">
+  <link rel="stylesheet" href="./style.css?v=19">
 </head>
 <body>
   <!-- Banner de atualização -->
@@ -37,6 +37,14 @@
             autocomplete="off" spellcheck="false" autocapitalize="characters">
           <div id="login-codigo-status" class="login-status"></div>
           <p class="login-dica">Use 3 a 6 letras/números. Anote este código — você vai precisar dele se limpar o cache.</p>
+        </div>
+
+        <!-- PIN — aparece sempre depois de validar o código -->
+        <div class="campo" id="login-pin-container" style="display:none">
+          <label for="login-pin" id="login-pin-label">Crie um PIN de 4 dígitos</label>
+          <input type="password" id="login-pin" class="login-pin-input" maxlength="4"
+            placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+          <p class="login-dica" id="login-pin-dica">Anote seu PIN — será pedido em cada acesso.</p>
         </div>
 
         <div class="campo" id="login-nome-container" style="display:none">
@@ -398,7 +406,11 @@
         <div class="pc-code-form">
           <label for="pc-codigo">Código do celular</label>
           <div class="pc-code-row">
-            <input type="text" id="pc-codigo" class="pc-code-input" maxlength="4" placeholder="XXXX" autocomplete="off" spellcheck="false">
+            <input type="text" id="pc-codigo" class="pc-code-input" maxlength="6" placeholder="Ex: ANA1" autocomplete="off" spellcheck="false">
+          </div>
+          <label for="pc-pin" style="margin-top:12px;display:block">PIN</label>
+          <div class="pc-code-row">
+            <input type="password" id="pc-pin" class="pc-code-input" maxlength="4" placeholder="••••" inputmode="numeric" autocomplete="off">
             <button type="button" id="pc-btn-buscar" class="pc-btn-buscar">Buscar</button>
           </div>
           <div class="erro-msg" id="pc-erro"></div>
@@ -522,8 +534,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=18"></script>
-  <script src="./app.js?v=18"></script>
+  <script src="./firebase-sync.js?v=19"></script>
+  <script src="./app.js?v=19"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {

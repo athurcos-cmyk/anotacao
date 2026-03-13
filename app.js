@@ -1610,15 +1610,26 @@ function clearDraft() {
 
 // ===== LOGIN =====
 function setupLogin() {
-  const inputCodigo   = $('#login-codigo');
-  const inputNome     = $('#login-nome');
-  const nomeContainer = $('#login-nome-container');
-  const status        = $('#login-codigo-status');
-  const erro          = $('#login-erro');
-  const btnEntrar     = $('#btn-login-entrar');
+  const inputCodigo    = $('#login-codigo');
+  const inputPin       = $('#login-pin');
+  const inputNome      = $('#login-nome');
+  const pinContainer   = $('#login-pin-container');
+  const pinLabel       = $('#login-pin-label');
+  const pinDica        = $('#login-pin-dica');
+  const nomeContainer  = $('#login-nome-container');
+  const status         = $('#login-codigo-status');
+  const erro           = $('#login-erro');
+  const btnEntrar      = $('#btn-login-entrar');
 
   let checkTimeout = null;
-  let codeState    = null; // 'available' | 'returning' | null
+  let codeState    = null; // 'available' | 'returning' | 'offline' | null
+
+  // Só dígitos no PIN
+  inputPin.addEventListener('input', () => {
+    inputPin.value = inputPin.value.replace(/\D/g, '').slice(0, 4);
+    erro.textContent = '';
+    btnEntrar.disabled = inputPin.value.length < 4;
+  });
 
   inputCodigo.addEventListener('input', () => {
     inputCodigo.value = inputCodigo.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -1628,7 +1639,9 @@ function setupLogin() {
     status.textContent = '';
     status.className   = 'login-status';
     btnEntrar.disabled = true;
+    pinContainer.style.display  = 'none';
     nomeContainer.style.display = 'none';
+    inputPin.value = '';
     codeState = null;
     erro.textContent = '';
     clearTimeout(checkTimeout);
@@ -1644,12 +1657,14 @@ function setupLogin() {
         : { exists: false, nome: null };
 
       if (result.offline) {
-        // Sem internet — permite entrar mesmo assim
         status.textContent = '⚠️ Sem conexão — entrando offline';
         status.className   = 'login-status status-err';
+        // Offline: mostra PIN mas não valida contra Firebase
+        pinLabel.textContent = 'PIN';
+        pinDica.textContent  = '';
+        pinContainer.style.display = 'block';
         nomeContainer.style.display = 'block';
-        codeState = 'available';
-        btnEntrar.disabled = false;
+        codeState = 'offline';
         return;
       }
 
@@ -1657,20 +1672,28 @@ function setupLogin() {
         const nome = result.nome ? `, ${result.nome}` : '';
         status.textContent = `👋 Olá${nome}! Bem-vinda de volta.`;
         status.className   = 'login-status status-back';
+        pinLabel.textContent = 'Digite seu PIN';
+        pinDica.textContent  = '';
+        pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'none';
         codeState = 'returning';
       } else {
         status.textContent = '✅ Código disponível!';
         status.className   = 'login-status status-ok';
+        pinLabel.textContent = 'Crie um PIN de 4 dígitos';
+        pinDica.textContent  = 'Anote seu PIN — será pedido em cada acesso.';
+        pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'block';
         codeState = 'available';
       }
-      btnEntrar.disabled = false;
+      // Botão fica desabilitado até PIN ter 4 dígitos
+      btnEntrar.disabled = inputPin.value.length < 4;
     }, 500);
   });
 
   btnEntrar.addEventListener('click', async () => {
     const code = inputCodigo.value.trim().toUpperCase();
+    const pin  = inputPin ? inputPin.value.trim() : '';
     const nome = inputNome ? inputNome.value.trim() : '';
 
     if (code.length < 3) {
@@ -1681,21 +1704,46 @@ function setupLogin() {
       erro.textContent = 'Aguarde a verificação do código.';
       return;
     }
+    if (pin.length < 4) {
+      erro.textContent = 'PIN deve ter 4 dígitos.';
+      return;
+    }
 
-    btnEntrar.disabled  = true;
+    btnEntrar.disabled    = true;
     btnEntrar.textContent = 'Entrando...';
+    erro.textContent      = '';
 
     if (codeState === 'returning') {
-      // Usuário voltando — carrega anotações da nuvem
+      // Verificar PIN antes de liberar acesso
+      const check = window.verifyPin
+        ? await window.verifyPin(code, pin)
+        : { ok: true };
+
+      if (check.offline) {
+        // Sem Firebase — não consegue verificar; bloqueia por segurança
+        erro.textContent = 'Sem conexão. Não foi possível verificar o PIN. Tente novamente.';
+        btnEntrar.disabled    = false;
+        btnEntrar.textContent = 'Entrar';
+        return;
+      }
+      if (!check.ok) {
+        erro.textContent      = '❌ PIN incorreto. Tente novamente.';
+        inputPin.value        = '';
+        btnEntrar.disabled    = false;
+        btnEntrar.textContent = 'Entrar';
+        return;
+      }
+      // PIN correto — carrega anotações da nuvem
       if (window.loadAnnotationsFromCloud) {
         await window.loadAnnotationsFromCloud(code);
       }
-    } else {
-      // Novo registro
+    } else if (codeState === 'available') {
+      // Novo registro com PIN
       if (window.registerCode) {
-        await window.registerCode(code, nome);
+        await window.registerCode(code, nome, pin);
       }
     }
+    // offline: entra sem verificar (sem outra opção)
 
     localStorage.setItem('sync_code', code);
     hideLogin();
@@ -1757,14 +1805,25 @@ function setupPCMode() {
     $('#pc-lista').innerHTML = '';
     $('#pc-erro').textContent = '';
     $('#pc-codigo').value = '';
+    if ($('#pc-pin')) $('#pc-pin').value = '';
   });
 
-  // Formata input: só letras maiúsculas
+  // Formata input: só letras/números maiúsculos no código
   $('#pc-codigo').addEventListener('input', () => {
-    $('#pc-codigo').value = $('#pc-codigo').value.toUpperCase().replace(/[^A-Z]/g, '');
+    $('#pc-codigo').value = $('#pc-codigo').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
   });
 
-  // Enter dispara busca
+  // PIN: só dígitos
+  if ($('#pc-pin')) {
+    $('#pc-pin').addEventListener('input', () => {
+      $('#pc-pin').value = $('#pc-pin').value.replace(/\D/g, '').slice(0, 4);
+    });
+    $('#pc-pin').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') pcBuscar();
+    });
+  }
+
+  // Enter no campo código dispara busca
   $('#pc-codigo').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') pcBuscar();
   });
@@ -1773,30 +1832,57 @@ function setupPCMode() {
 }
 
 async function pcBuscar() {
-  const code   = $('#pc-codigo').value.trim().toUpperCase();
-  const erroEl = $('#pc-erro');
+  const code    = $('#pc-codigo').value.trim().toUpperCase();
+  const pin     = $('#pc-pin') ? $('#pc-pin').value.trim() : '';
+  const erroEl  = $('#pc-erro');
   const listaEl = $('#pc-lista');
 
   erroEl.textContent = '';
 
-  if (code.length !== 4) {
-    erroEl.textContent = 'O código deve ter 4 letras.';
+  if (code.length < 3) {
+    erroEl.textContent = 'O código deve ter pelo menos 3 caracteres.';
+    return;
+  }
+  if (pin.length < 4) {
+    erroEl.textContent = 'Informe o PIN de 4 dígitos.';
     return;
   }
 
   listaEl.innerHTML = `
     <div class="pc-estado">
       <div class="pc-spinner"></div>
-      <p>Buscando anotações...</p>
+      <p>Verificando PIN...</p>
     </div>`;
   $('#pc-btn-buscar').disabled = true;
 
   try {
+    // Verificar PIN antes de buscar as anotações
+    if (window.verifyPin) {
+      const check = await window.verifyPin(code, pin);
+      if (check.offline) {
+        erroEl.textContent = 'Sem conexão. Não foi possível verificar o PIN.';
+        listaEl.innerHTML = '';
+        return;
+      }
+      if (!check.ok) {
+        erroEl.textContent = '❌ Código ou PIN incorreto.';
+        listaEl.innerHTML = '';
+        if ($('#pc-pin')) $('#pc-pin').value = '';
+        return;
+      }
+    }
+
+    listaEl.innerHTML = `
+      <div class="pc-estado">
+        <div class="pc-spinner"></div>
+        <p>Buscando anotações...</p>
+      </div>`;
+
     if (!window.syncFetchByCode) throw new Error('Sincronização não disponível');
     const anotacoes = await window.syncFetchByCode(code);
 
     if (!anotacoes || anotacoes.length === 0) {
-      listaEl.innerHTML = `<div class="pc-estado"><p>Nenhuma anotação encontrada para <strong>${code}</strong>.</p></div>`;
+      listaEl.innerHTML = `<div class="pc-estado"><p>Nenhuma anotação encontrada para <strong>${escapeHtml(code)}</strong>.</p></div>`;
       return;
     }
     pcRenderLista(anotacoes);
