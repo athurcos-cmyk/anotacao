@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=11">
+  <link rel="stylesheet" href="./style.css?v=12">
 </head>
 <body>
   <!-- Banner de atualização -->
@@ -290,6 +290,50 @@
         <h2>Histórico</h2>
       </header>
       <div id="historico-lista" class="historico-lista"></div>
+    </section>
+
+    <!-- PC MODE SCREEN -->
+    <section id="pc-screen" class="screen" style="display:none">
+
+      <!-- Seletor: celular ou PC -->
+      <div id="pc-mode-selector" class="pc-mode-selector">
+        <div class="pc-logo">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2D7DD2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>
+          <h1>Anotação HC</h1>
+        </div>
+        <p class="pc-subtitle">Como você está acessando agora?</p>
+        <div class="pc-modo-btns">
+          <button type="button" id="btn-modo-celular" class="btn-modo">
+            <span class="btn-modo-icon">📱</span>
+            <span>Celular</span>
+          </button>
+          <button type="button" id="btn-modo-pc" class="btn-modo">
+            <span class="btn-modo-icon">🖥️</span>
+            <span>Estou no PC</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Visualização PC: busca por código -->
+      <div id="pc-view" style="display:none">
+        <header class="pc-view-header">
+          <button type="button" id="btn-pc-voltar" aria-label="Voltar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h2>Ver Anotações</h2>
+        </header>
+
+        <div class="pc-code-form">
+          <label for="pc-codigo">Código do celular</label>
+          <div class="pc-code-row">
+            <input type="text" id="pc-codigo" class="pc-code-input" maxlength="4" placeholder="XXXX" autocomplete="off" spellcheck="false">
+            <button type="button" id="pc-btn-buscar" class="pc-btn-buscar">Buscar</button>
+          </div>
+          <div class="erro-msg" id="pc-erro"></div>
+        </div>
+
+        <div id="pc-lista" class="pc-lista"></div>
+      </div>
     </section>
 
     <!-- SINAIS VITAIS -->

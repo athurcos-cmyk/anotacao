@@ -25,7 +25,8 @@ const els = {
   confirmMsg: $('#confirm-msg'),
   dispositivosLista: $('#dispositivos-lista'),
   fechamentoPreview: $('#fechamento-preview'),
-  svScreen: $('#sv-screen')
+  svScreen: $('#sv-screen'),
+  pcScreen: $('#pc-screen')
 };
 
 // ===== INIT =====
@@ -37,7 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHistorico();
   setupModal();
   setupSV();
+  setupPCMode();
   updateBlocoView();
+
+  // Detecta desktop → mostra seletor de modo
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+  if (!isMobile) showPCMode();
 
   window.addEventListener('resize', () => updateBlocoView());
 });
@@ -1004,23 +1010,32 @@ function setupPreview() {
   });
 }
 
+function hideAllScreens() {
+  els.header.style.display        = 'none';
+  els.main.style.display          = 'none';
+  els.previewScreen.style.display = 'none';
+  els.historicoScreen.style.display = 'none';
+  els.svScreen.style.display      = 'none';
+  els.pcScreen.style.display      = 'none';
+}
+
 function showPreview() {
   const texto = gerarTexto();
   els.previewText.textContent = texto;
-
-  els.header.style.display = 'none';
-  els.main.style.display = 'none';
+  hideAllScreens();
   els.previewScreen.style.display = 'block';
-  els.historicoScreen.style.display = 'none';
-
   window.scrollTo({ top: 0 });
 }
 
 function showForm() {
+  hideAllScreens();
   els.header.style.display = 'block';
-  els.main.style.display = 'block';
-  els.previewScreen.style.display = 'none';
-  els.historicoScreen.style.display = 'none';
+  els.main.style.display   = 'block';
+}
+
+function showPCMode() {
+  hideAllScreens();
+  els.pcScreen.style.display = 'block';
 }
 
 // ===== HISTORICO =====
@@ -1030,11 +1045,8 @@ function setupHistorico() {
 }
 
 function showHistorico() {
-  els.header.style.display = 'none';
-  els.main.style.display = 'none';
-  els.previewScreen.style.display = 'none';
+  hideAllScreens();
   els.historicoScreen.style.display = 'block';
-
   renderHistorico();
   window.scrollTo({ top: 0 });
 }
@@ -1262,11 +1274,8 @@ function setupSV() {
 }
 
 function showSV() {
+  hideAllScreens();
   els.svScreen.style.display = 'block';
-  els.header.style.display = 'none';
-  els.main.style.display = 'none';
-  if (els.previewScreen) els.previewScreen.style.display = 'none';
-  if (els.historicoScreen) els.historicoScreen.style.display = 'none';
   window.scrollTo({ top: 0 });
 }
 
@@ -1398,4 +1407,127 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ===== PC MODE =====
+function setupPCMode() {
+  // Botão Celular → vai pro form normal
+  $('#btn-modo-celular').addEventListener('click', () => {
+    showForm();
+  });
+
+  // Botão PC → abre view de busca
+  $('#btn-modo-pc').addEventListener('click', () => {
+    $('#pc-mode-selector').style.display = 'none';
+    $('#pc-view').style.display = 'block';
+    setTimeout(() => $('#pc-codigo').focus(), 100);
+  });
+
+  // Voltar do PC view → volta pro seletor
+  $('#btn-pc-voltar').addEventListener('click', () => {
+    $('#pc-view').style.display = 'none';
+    $('#pc-mode-selector').style.display = 'flex';
+    $('#pc-lista').innerHTML = '';
+    $('#pc-erro').textContent = '';
+    $('#pc-codigo').value = '';
+  });
+
+  // Formata input: só letras maiúsculas
+  $('#pc-codigo').addEventListener('input', () => {
+    $('#pc-codigo').value = $('#pc-codigo').value.toUpperCase().replace(/[^A-Z]/g, '');
+  });
+
+  // Enter dispara busca
+  $('#pc-codigo').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') pcBuscar();
+  });
+
+  $('#pc-btn-buscar').addEventListener('click', pcBuscar);
+}
+
+async function pcBuscar() {
+  const code   = $('#pc-codigo').value.trim().toUpperCase();
+  const erroEl = $('#pc-erro');
+  const listaEl = $('#pc-lista');
+
+  erroEl.textContent = '';
+
+  if (code.length !== 4) {
+    erroEl.textContent = 'O código deve ter 4 letras.';
+    return;
+  }
+
+  listaEl.innerHTML = `
+    <div class="pc-estado">
+      <div class="pc-spinner"></div>
+      <p>Buscando anotações...</p>
+    </div>`;
+  $('#pc-btn-buscar').disabled = true;
+
+  try {
+    if (!window.syncFetchByCode) throw new Error('Sincronização não disponível');
+    const anotacoes = await window.syncFetchByCode(code);
+
+    if (!anotacoes || anotacoes.length === 0) {
+      listaEl.innerHTML = `<div class="pc-estado"><p>Nenhuma anotação encontrada para <strong>${code}</strong>.</p></div>`;
+      return;
+    }
+    pcRenderLista(anotacoes);
+  } catch (err) {
+    erroEl.textContent = 'Erro: ' + err.message;
+    listaEl.innerHTML = '';
+  } finally {
+    $('#pc-btn-buscar').disabled = false;
+  }
+}
+
+function pcRenderLista(lista) {
+  const listaEl = $('#pc-lista');
+  listaEl.innerHTML = '';
+
+  lista.forEach(anot => {
+    const data  = anot.timestamp ? new Date(anot.timestamp) : null;
+    const tempo = data ? data.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    }) : '';
+
+    const card = document.createElement('div');
+    card.className = 'pc-anot-card';
+    card.innerHTML = `
+      <div class="pc-anot-header">
+        <span class="pc-anot-title">${escapeHtml(anot.nome || 'Anotação')}</span>
+        <span class="pc-anot-time">${tempo}</span>
+      </div>
+      <div class="pc-anot-body">${escapeHtml(anot.texto || '')}</div>
+      <div class="pc-anot-footer">
+        <button class="btn-copiar-pc">📋 Copiar texto</button>
+      </div>
+    `;
+
+    card.querySelector('.btn-copiar-pc').addEventListener('click', function () {
+      navigator.clipboard.writeText(anot.texto || '').then(() => {
+        this.textContent = '✅ Copiado!';
+        this.classList.add('copiado');
+        setTimeout(() => {
+          this.textContent = '📋 Copiar texto';
+          this.classList.remove('copiado');
+        }, 2500);
+      }).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = anot.texto || '';
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        this.textContent = '✅ Copiado!';
+        setTimeout(() => { this.textContent = '📋 Copiar texto'; }, 2500);
+      });
+    });
+
+    listaEl.appendChild(card);
+  });
 }

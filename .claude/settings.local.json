@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:api.github.com)",
+      "Bash(Get-Item \"C:\\\\Users\\\\Thurcos\\\\Desktop\\\\anotacao\\\\style.css\")",
+      "Bash(Select-Object Length)",
+      "Read(//mnt/c/Users/Thurcos/Desktop/anotacao/**)",
+      "Bash(\"C:\\\\Users\\\\Thurcos\\\\Desktop\\\\anotacao\\\\style.css\")"
+    ]
+  }
+}
