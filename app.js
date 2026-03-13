@@ -1803,16 +1803,24 @@ function setupLogin() {
         const nome = result.nome ? `, ${result.nome}` : '';
         status.textContent = `👋 Olá${nome}! Bem-vinda de volta.`;
         status.className   = 'login-status status-back';
+        const lbl = $('#login-codigo-label');
+        const dic = $('#login-codigo-dica');
+        if (lbl) lbl.textContent = 'Seu código';
+        if (dic) dic.textContent = 'Código reconhecido — agora digite seu PIN para entrar.';
         pinLabel.textContent = 'Digite seu PIN';
-        pinDica.textContent  = '';
+        pinDica.innerHTML    = '';
         pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'none';
         codeState = 'returning';
       } else {
-        status.textContent = '✅ Código disponível!';
+        status.textContent = '✅ Código disponível! Faça seu cadastro abaixo.';
         status.className   = 'login-status status-ok';
+        const lbl = $('#login-codigo-label');
+        const dic = $('#login-codigo-dica');
+        if (lbl) lbl.textContent = 'Escolha seu código pessoal';
+        if (dic) dic.textContent = 'Novo por aqui! Anote este código — você vai precisar dele para acessar novamente.';
         pinLabel.textContent = 'Crie um PIN de 4 dígitos';
-        pinDica.textContent  = 'Anote seu PIN — será pedido em cada acesso.';
+        pinDica.innerHTML    = 'Anote seu PIN — será pedido em cada acesso.<br><strong>⚠️ Evite PINs óbvios:</strong> 1234, 0000, 1111 ou data de nascimento.';
         pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'block';
         codeState = 'available';
