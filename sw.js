@@ -1,7 +1,8 @@
-const CACHE_NAME = 'anotacao-v12';
+const CACHE_NAME = 'anotacao-v13';
 const ASSETS = [
   './',
   './index.html',
+  './pc.html',
   './style.css',
   './app.js',
   './firebase-sync.js',

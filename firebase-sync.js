@@ -25,10 +25,11 @@ const SYNC_ENABLED = FIREBASE_CONFIG !== null;
 function getSyncCode() {
   let code = localStorage.getItem('sync_code');
   if (!code) {
-    // Gera código de 4 letras maiúsculas aleatórias
-    code = Array.from({ length: 4 }, () =>
-      'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]
-    ).join('');
+    // Gera código de 4 letras usando crypto (mais seguro que Math.random)
+    const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const arr = new Uint8Array(4);
+    crypto.getRandomValues(arr);
+    code = Array.from(arr, b => CHARS[b % CHARS.length]).join('');
     localStorage.setItem('sync_code', code);
   }
   return code;
@@ -103,23 +104,34 @@ async function processOfflineQueue() {
   console.log(`[Sync] Processando ${queue.length} anotação(ões) em fila...`);
   const { ref, set, instance } = db;
 
+  const failed = [];
   for (const item of queue) {
     try {
       const path = `sync/${item.syncCode || getSyncCode()}/${item.timestamp}`;
       await set(ref(instance, path), item);
     } catch (err) {
-      console.warn('[Sync] Fila — falha ao enviar:', err.message);
-      return; // Para na primeira falha; tenta de novo na próxima conexão
+      console.warn('[Sync] Fila — falha ao enviar item:', err.message);
+      failed.push(item); // Guarda os que falharam, continua com os demais
     }
   }
 
-  clearOfflineQueue();
-  console.log('[Sync] ✅ Fila processada com sucesso');
+  // Salva só os que falharam (os demais foram enviados com sucesso)
+  if (failed.length > 0) {
+    localStorage.setItem('sync_queue', JSON.stringify(failed));
+    console.warn(`[Sync] ${failed.length} item(ns) permanece(m) na fila`);
+  } else {
+    clearOfflineQueue();
+    console.log('[Sync] ✅ Fila processada com sucesso');
+  }
 }
 
 // ── Buscar anotações do código no PC ─────────
 async function syncFetchByCode(code) {
-  if (!db) throw new Error('Firebase não inicializado');
+  if (!db) {
+    // Firebase ainda não inicializou — aguarda até 5s
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    if (!db) return [];
+  }
 
   const { ref, get, instance } = db;
   const snapshot = await get(ref(instance, `sync/${code.toUpperCase()}`));

@@ -1362,7 +1362,7 @@ function mostrarPreviewSV(texto) {
     document.querySelector('.sv-form').after(svPreview);
 
     $('#sv-btn-copiar').addEventListener('click', () => {
-      navigator.clipboard.writeText($('#sv-preview-text').textContent).then(() => showToast('Copiado!'));
+      copyText($('#sv-preview-text').textContent);
     });
 
     $('#sv-btn-salvar').addEventListener('click', () => {
