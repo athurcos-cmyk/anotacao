@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLogin();
   setupFrasesRapidas();
   setupDraftAutoSave();
-  updateBlocoView();
+  requestAnimationFrame(() => updateBlocoView());
 
   const existingCode = localStorage.getItem('sync_code');
   if (!existingCode || !isSessionValid()) {
@@ -221,16 +221,14 @@ function setupConditionals() {
   // Respiracao
   $$('input[name="respiracao"]').forEach(radio => {
     radio.addEventListener('change', () => {
-      const o2Container    = $('#oxigenio-container');
+      const o2Container     = $('#oxigenio-container');
       const padraoContainer = $('#resp-padrao-container');
-      const needsO2   = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
-      const needsPadrao = needsO2; // mostra padrão só para O2 (eupneico/dispneico já está no valor de ar ambiente)
+      const needsO2     = radio.value === 'cateter nasal de O₂' || radio.value === 'máscara de O₂';
+      const needsPadrao = radio.value !== 'ventilação mecânica'; // sempre mostra, exceto VM
       o2Container.style.display     = needsO2     ? 'block' : 'none';
       padraoContainer.style.display = needsPadrao ? 'block' : 'none';
-      if (!needsO2) {
-        $('#oxigenio-litros').value = '';
-        $$('input[name="resp-padrao"]').forEach(r => r.checked = false);
-      }
+      if (!needsO2)     $('#oxigenio-litros').value = '';
+      if (!needsPadrao) $$('input[name="resp-padrao"]').forEach(r => r.checked = false);
     });
   });
 
@@ -970,7 +968,7 @@ function validateBloco2() {
   const resp = getRadioValue('respiracao');
   if (!resp) {
     erros.push('Selecione respiração');
-  } else if ((resp === 'cateter nasal de O₂' || resp === 'máscara de O₂')) {
+  } else if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
     if (!$('#oxigenio-litros').value) {
       erros.push('Informe os litros por minuto');
       $('#oxigenio-litros').closest('.campo').classList.add('invalido');
@@ -980,6 +978,7 @@ function validateBloco2() {
       $('#resp-padrao-container').classList.add('invalido');
     }
   }
+  // padrão respiratório é opcional para ar ambiente
 
   // Acompanhante
   const acomp = getRadioValue('acompanhante');
@@ -1071,15 +1070,24 @@ function gerarTexto() {
   }
 
   // Respiracao
-  const resp = getRadioValue('respiracao');
+  const resp   = getRadioValue('respiracao');
+  const genero = getGenero();
+  const padraoEl  = document.querySelector('input[name="resp-padrao"]:checked');
+  const padraoVal = padraoEl
+    ? (genero === 'M' ? (padraoEl.dataset.mValue || padraoEl.value) : (padraoEl.dataset.fValue || padraoEl.value))
+    : '';
+
   if (resp === 'cateter nasal de O₂' || resp === 'máscara de O₂') {
-    const litros  = $('#oxigenio-litros').value;
-    const genero  = getGenero();
-    const padraoEl = document.querySelector('input[name="resp-padrao"]:checked');
-    const padraoVal = padraoEl ? (genero === 'M' ? (padraoEl.dataset.mValue || padraoEl.value) : (padraoEl.dataset.fValue || padraoEl.value)) : '';
+    const litros = $('#oxigenio-litros').value;
     const padraoTxt = padraoVal ? `, ${padraoVal}` : '';
     apresentaParts.push(`em ${resp} a ${litros}L/min${padraoTxt}`);
+  } else if (resp === 'eupneica em ar ambiente' && padraoVal && padraoVal !== 'eupneica' && padraoVal !== 'eupneico') {
+    // Paciente em ar ambiente mas com padrão alterado (ex: dispneica em ar ambiente)
+    apresentaParts.push(`${padraoVal} em ar ambiente`);
+  } else if (resp === 'eupneica em ar ambiente') {
+    apresentaParts.push(resp);
   } else {
+    // ventilação mecânica ou outro
     apresentaParts.push(resp);
   }
 
@@ -1218,6 +1226,8 @@ function showForm() {
   hideAllScreens();
   els.header.style.display = 'block';
   els.main.style.display   = 'block';
+  // Recalcular largura dos blocos após exibir o main
+  requestAnimationFrame(() => updateBlocoView());
 }
 
 function showPCMode() {
@@ -1466,6 +1476,10 @@ function deletarAnotacao(timestamp) {
   let anotacoes = getAnotacoes();
   anotacoes = anotacoes.filter(a => a.timestamp !== timestamp);
   localStorage.setItem('anotacoes_hc', JSON.stringify(anotacoes));
+  // Apagar também do Firebase
+  if (window.syncDeleteAnnotation) {
+    window.syncDeleteAnnotation(timestamp);
+  }
 }
 
 // ===== CLIPBOARD =====

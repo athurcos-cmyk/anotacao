@@ -49,10 +49,10 @@ async function initSync() {
 
   try {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const { getDatabase, ref, set, get, child } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { getDatabase, ref, set, get, remove, child } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
 
     const app = initializeApp(FIREBASE_CONFIG);
-    db = { getDatabase, ref, set, get, child, instance: getDatabase(app) };
+    db = { getDatabase, ref, set, get, remove, child, instance: getDatabase(app) };
 
     // Processar fila offline pendente
     await processOfflineQueue();
@@ -228,8 +228,23 @@ window.addEventListener('online', async () => {
 // ── Inicializar ao carregar ───────────────────
 initSync();
 
+// ── Deletar anotação do Firebase ─────────────
+async function syncDeleteAnnotation(timestamp) {
+  if (!SYNC_ENABLED) return;
+  const code = getSyncCode();
+  if (!code || !db || !navigator.onLine) return;
+  try {
+    const { ref, remove, instance } = db;
+    await remove(ref(instance, `sync/${code}/${timestamp}`));
+    console.log('[Sync] 🗑️ Anotação deletada do Firebase:', timestamp);
+  } catch (err) {
+    console.warn('[Sync] Falha ao deletar do Firebase:', err.message);
+  }
+}
+
 // ── Exportar para uso no app.js ──────────────
 window.syncSaveAnnotation      = syncSaveAnnotation;
+window.syncDeleteAnnotation    = syncDeleteAnnotation;
 window.syncFetchByCode         = syncFetchByCode;
 window.getSyncCode             = getSyncCode;
 window.checkCode               = checkCode;
