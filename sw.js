@@ -1,20 +1,27 @@
-const CACHE_NAME = 'anotacao-v10';
+const CACHE_NAME = 'anotacao-v11';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './firebase-sync.js',
   './manifest.json'
 ];
 
-// Install - cache all static assets
+// Install - cache all static assets (não pula espera automaticamente — banner cuida disso)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
     })
   );
-  self.skipWaiting();
+});
+
+// Mensagem SKIP_WAITING — disparada pelo botão "Atualizar agora" no banner
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate - clean old caches

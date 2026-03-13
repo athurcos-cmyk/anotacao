@@ -11,9 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=10">
+  <link rel="stylesheet" href="./style.css?v=11">
 </head>
 <body>
+  <!-- Banner de atualização -->
+  <div id="update-banner" style="display:none">
+    <span>🔄 Nova versão disponível</span>
+    <button id="btn-update">Atualizar agora</button>
+  </div>
+
   <div id="app">
     <!-- Header -->
     <header id="header">
@@ -400,10 +406,29 @@
     </div>
   </div>
 
+  <script src="./firebase-sync.js"></script>
   <script src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              // Nova versão pronta — mostrar banner
+              document.getElementById('update-banner').style.display = 'flex';
+              document.getElementById('btn-update').addEventListener('click', () => {
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+              });
+            }
+          });
+        });
+      });
+
+      // Quando SW assumir controle, recarregar página
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
     }
   </script>
 </body>

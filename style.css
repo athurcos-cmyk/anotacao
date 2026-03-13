@@ -1,3 +1,32 @@
+/* ===== UPDATE BANNER ===== */
+#update-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+  background: #1a3a6e;
+  border-bottom: 2px solid #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+#update-banner span { flex: 1; }
+#btn-update {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#btn-update:active { background: #2563eb; }
+
 /* ===== RESET & BASE ===== */
 *, *::before, *::after {
   box-sizing: border-box;

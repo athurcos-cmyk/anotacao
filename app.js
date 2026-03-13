@@ -1145,13 +1145,17 @@ function getAnotacoes() {
 }
 
 function salvarAnotacao(texto, nomePaciente) {
-  const anotacoes = getAnotacoes();
-  anotacoes.push({
+  const anot = {
     texto,
     nome: nomePaciente || '',
     timestamp: Date.now()
-  });
+  };
+  const anotacoes = getAnotacoes();
+  anotacoes.push(anot);
   localStorage.setItem('anotacoes_hc', JSON.stringify(anotacoes));
+
+  // Sync Firebase (se configurado)
+  if (window.syncSaveAnnotation) window.syncSaveAnnotation(anot);
 }
 
 function deletarAnotacao(timestamp) {
@@ -1355,9 +1359,7 @@ function mostrarPreviewSV(texto) {
     $('#sv-btn-salvar').addEventListener('click', () => {
       const t = $('#sv-preview-text').textContent;
       const nome = $('#sv-nome-paciente').value.trim() || 'Sinais Vitais';
-      const anotacoes = JSON.parse(localStorage.getItem('anotacoes_hc') || '[]');
-      anotacoes.unshift({ texto: t, nome, data: new Date().toISOString() });
-      localStorage.setItem('anotacoes_hc', JSON.stringify(anotacoes));
+      salvarAnotacao(t, nome);
       showToast('Salvo!');
     });
 
