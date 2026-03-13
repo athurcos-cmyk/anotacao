@@ -1135,6 +1135,14 @@ function setupHistorico() {
   $('#btn-historico').addEventListener('click', showHistorico);
   $('#btn-voltar-historico').addEventListener('click', showForm);
 
+  // Botão Sair (celular)
+  $('#btn-sair-celular').addEventListener('click', () => {
+    showConfirm('Deseja sair da sua conta? Você precisará do seu código e PIN para entrar novamente.', () => {
+      clearSession();
+      showLogin();
+    });
+  });
+
   // Revelar/ocultar código no banner
   let codigoRevelado = false;
   $('#btn-revelar-codigo').addEventListener('click', () => {
@@ -1799,6 +1807,7 @@ function setupLogin() {
         return;
       }
 
+      const ajuda = $('#login-ajuda');
       if (result.exists) {
         const nome = result.nome ? `, ${result.nome}` : '';
         status.textContent = `👋 Olá${nome}! Bem-vinda de volta.`;
@@ -1811,6 +1820,7 @@ function setupLogin() {
         pinDica.innerHTML    = '';
         pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'none';
+        if (ajuda) ajuda.style.display = 'block'; // mostra ajuda de PIN/código esquecido
         codeState = 'returning';
       } else {
         status.textContent = '✅ Código disponível! Faça seu cadastro abaixo.';
@@ -1823,6 +1833,7 @@ function setupLogin() {
         pinDica.innerHTML    = 'Anote seu PIN — será pedido em cada acesso.<br><strong>⚠️ Evite PINs óbvios:</strong> 1234, 0000, 1111 ou data de nascimento.';
         pinContainer.style.display  = 'block';
         nomeContainer.style.display = 'block';
+        if (ajuda) ajuda.style.display = 'none';
         codeState = 'available';
       }
       // Botão fica desabilitado até PIN ter 4 dígitos
