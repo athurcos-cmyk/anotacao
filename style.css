@@ -1007,12 +1007,28 @@ textarea {
   background: var(--bg-hover);
 }
 
+.hist-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  gap: 8px;
+}
 .historico-item .hist-date {
   font-size: 0.8rem;
   color: var(--blue-light);
-  margin-bottom: 4px;
   font-weight: 600;
 }
+.hist-tipo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hist-tipo-sv  { background: rgba(239,68,68,.15);  color: #f87171; }
+.hist-tipo-rec { background: rgba(59,130,246,.15); color: #60a5fa; }
 
 .historico-item .hist-nome {
   font-size: 0.9rem;
@@ -1379,9 +1395,13 @@ textarea {
 .pc-busca-input:focus { border-color: var(--accent); }
 .pc-lista { padding: 20px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; width: 100%; }
 .pc-anot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeIn .25s ease; }
-.pc-anot-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(45,125,210,.1); border-bottom: 1px solid var(--border); }
-.pc-anot-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.pc-anot-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(45,125,210,.1); border-bottom: 1px solid var(--border); gap: 8px; flex-wrap: wrap; }
+.pc-anot-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; flex: 1; }
+.pc-anot-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .pc-anot-time { font-size: 0.75rem; color: var(--text-dim); }
+.pc-tipo-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+.pc-tipo-sv  { background: rgba(239,68,68,.15);  color: #f87171; }
+.pc-tipo-rec { background: rgba(59,130,246,.15); color: #60a5fa; }
 .pc-anot-body { padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-word; }
 .pc-anot-footer { padding: 10px 14px; border-top: 1px solid var(--border); }
 .btn-copiar-pc { width: 100%; background: #22C55E; border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 12px; transition: opacity .2s, transform .1s; }

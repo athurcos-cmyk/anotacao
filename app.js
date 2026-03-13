@@ -1366,9 +1366,16 @@ function renderHistorico() {
     const dateStr = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const nomeLine = anot.nome ? `<div class="hist-nome">${escapeHtml(anot.nome)}</div>` : '';
     const preview = anot.texto.substring(0, 80) + (anot.texto.length > 80 ? '...' : '');
+    const isSV = anot.tipo === 'sv';
+    const tipoBadge = isSV
+      ? `<span class="hist-tipo hist-tipo-sv">❤️ Sinais Vitais</span>`
+      : `<span class="hist-tipo hist-tipo-rec">📋 Recebimento</span>`;
 
     item.innerHTML = `
-      <div class="hist-date">${dateStr}</div>
+      <div class="hist-header-row">
+        <div class="hist-date">${dateStr}</div>
+        ${tipoBadge}
+      </div>
       ${nomeLine}
       <div class="hist-preview">${escapeHtml(preview)}</div>
     `;
@@ -1458,11 +1465,12 @@ function getAnotacoes() {
   }
 }
 
-function salvarAnotacao(texto, nomePaciente) {
+function salvarAnotacao(texto, nomePaciente, tipo) {
   const anot = {
     texto,
     nome: nomePaciente || '',
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    tipo: tipo || 'recebimento'
   };
   const anotacoes = getAnotacoes();
   anotacoes.push(anot);
@@ -1677,7 +1685,7 @@ function mostrarPreviewSV(texto) {
     $('#sv-btn-salvar').addEventListener('click', () => {
       const t = $('#sv-preview-text').textContent;
       const nome = $('#sv-nome-paciente').value.trim() || 'Sinais Vitais';
-      salvarAnotacao(t, nome);
+      salvarAnotacao(t, nome, 'sv');
       showToast('Salvo!');
     });
 
@@ -2218,10 +2226,17 @@ function pcRenderItens(lista) {
 
     const card = document.createElement('div');
     card.className = 'pc-anot-card';
+    const isSV = anot.tipo === 'sv';
+    const tipoBadgePC = isSV
+      ? `<span class="pc-tipo-badge pc-tipo-sv">❤️ Sinais Vitais</span>`
+      : `<span class="pc-tipo-badge pc-tipo-rec">📋 Recebimento</span>`;
     card.innerHTML = `
       <div class="pc-anot-header">
         <span class="pc-anot-title">${escapeHtml(anot.nome || 'Anotação')}</span>
-        <span class="pc-anot-time">${tempo}</span>
+        <div class="pc-anot-header-right">
+          ${tipoBadgePC}
+          <span class="pc-anot-time">${tempo}</span>
+        </div>
       </div>
       <div class="pc-anot-body">${escapeHtml(anot.texto || '')}</div>
       <div class="pc-anot-footer">
