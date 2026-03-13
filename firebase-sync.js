@@ -213,9 +213,16 @@ async function syncFetchByCode(code) {
 }
 
 // ── Reconectar quando voltar online ──────────
-window.addEventListener('online', () => {
-  console.log('[Sync] Conexão restaurada — processando fila...');
-  processOfflineQueue();
+window.addEventListener('online', async () => {
+  console.log('[Sync] Conexão restaurada...');
+  if (!db) {
+    // Firebase não havia inicializado (app abriu offline) — tenta agora
+    console.log('[Sync] Firebase não estava ativo, reinicializando...');
+    await initSync();
+    // initSync já chama processOfflineQueue internamente
+  } else {
+    await processOfflineQueue();
+  }
 });
 
 // ── Inicializar ao carregar ───────────────────
