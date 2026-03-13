@@ -22,17 +22,10 @@ const FIREBASE_CONFIG = {
 const SYNC_ENABLED = FIREBASE_CONFIG !== null;
 
 // ── Código de sync pessoal ──────────────────
+// Retorna o código salvo no localStorage (definido pelo login).
+// Não gera código automaticamente — o usuário deve passar pelo login.
 function getSyncCode() {
-  let code = localStorage.getItem('sync_code');
-  if (!code) {
-    // Gera código de 4 letras usando crypto (mais seguro que Math.random)
-    const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const arr = new Uint8Array(4);
-    crypto.getRandomValues(arr);
-    code = Array.from(arr, b => CHARS[b % CHARS.length]).join('');
-    localStorage.setItem('sync_code', code);
-  }
-  return code;
+  return localStorage.getItem('sync_code') || null;
 }
 
 // ── Fila offline ────────────────────────────
@@ -64,7 +57,7 @@ async function initSync() {
     // Processar fila offline pendente
     await processOfflineQueue();
 
-    console.log('[Sync] Firebase inicializado. Código:', getSyncCode());
+    console.log('[Sync] Firebase inicializado.');
   } catch (err) {
     console.warn('[Sync] Firebase não disponível:', err.message);
   }
@@ -75,6 +68,8 @@ async function syncSaveAnnotation(anot) {
   if (!SYNC_ENABLED) return;
 
   const code = getSyncCode();
+  if (!code) return; // Usuário ainda não fez login — não sincroniza
+
   const item = { ...anot, syncCode: code };
 
   if (!db || !navigator.onLine) {
@@ -107,7 +102,7 @@ async function processOfflineQueue() {
   const failed = [];
   for (const item of queue) {
     try {
-      const path = `sync/${item.syncCode || getSyncCode()}/${item.timestamp}`;
+      const path = `sync/${item.syncCode || getSyncCode() || 'UNKNOWN'}/${item.timestamp}`;
       await set(ref(instance, path), item);
     } catch (err) {
       console.warn('[Sync] Fila — falha ao enviar item:', err.message);

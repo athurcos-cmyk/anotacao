@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=17">
+  <link rel="stylesheet" href="./style.css?v=18">
 </head>
 <body>
   <!-- Banner de atualização -->
@@ -522,8 +522,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=17"></script>
-  <script src="./app.js?v=17"></script>
+  <script src="./firebase-sync.js?v=18"></script>
+  <script src="./app.js?v=18"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -541,9 +541,13 @@
         });
       });
 
-      // Quando SW assumir controle, recarregar página
+      // Recarrega a página quando o SW assumir controle — mas SOMENTE
+      // se já havia um SW anterior (atualização), não na primeira instalação.
+      const hadController = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
+        if (hadController) {
+          window.location.reload();
+        }
       });
     }
   </script>
