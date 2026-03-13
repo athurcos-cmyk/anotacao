@@ -1042,11 +1042,33 @@ function showPCMode() {
 function setupHistorico() {
   $('#btn-historico').addEventListener('click', showHistorico);
   $('#btn-voltar-historico').addEventListener('click', showForm);
+
+  $('#btn-copiar-codigo').addEventListener('click', () => {
+    const code = (window.getSyncCode && window.getSyncCode()) || localStorage.getItem('sync_code') || '';
+    copyText(code);
+    const btn = $('#btn-copiar-codigo');
+    btn.style.background = 'rgba(67, 160, 71, 0.25)';
+    btn.style.borderColor = '#43A047';
+    btn.style.color = '#43A047';
+    setTimeout(() => {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 1800);
+  });
 }
 
 function showHistorico() {
   hideAllScreens();
   els.historicoScreen.style.display = 'block';
+
+  // Mostra o código de sync
+  const codeEl = $('#sync-code-display');
+  if (codeEl) {
+    const code = (window.getSyncCode && window.getSyncCode()) || localStorage.getItem('sync_code') || '????';
+    codeEl.textContent = code;
+  }
+
   renderHistorico();
   window.scrollTo({ top: 0 });
 }

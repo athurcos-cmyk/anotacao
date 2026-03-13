@@ -585,6 +585,65 @@ textarea {
   background: var(--bg-hover);
 }
 
+/* ===== SYNC CODE BANNER ===== */
+.sync-code-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0d2340 0%, #0f2d50 100%);
+  border: 1.5px solid #1E88E5;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 0 0 6px;
+}
+
+.sync-code-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-code-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sync-code-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #42A5F5;
+  line-height: 1;
+}
+
+.sync-code-copy {
+  background: rgba(30, 136, 229, 0.15);
+  border: 1px solid rgba(30, 136, 229, 0.4);
+  border-radius: 10px;
+  color: #42A5F5;
+  cursor: pointer;
+  padding: 10px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sync-code-copy:active { background: rgba(30, 136, 229, 0.3); }
+
+.sync-code-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.sync-code-hint strong { color: var(--text-dim); }
+
+/* ===== HISTORICO LISTA ===== */
 .historico-lista {
   display: flex;
   flex-direction: column;

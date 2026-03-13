@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=13">
+  <link rel="stylesheet" href="./style.css?v=14">
 </head>
 <body>
   <!-- Banner de atualização -->
@@ -289,6 +289,19 @@
         </button>
         <h2>Histórico</h2>
       </header>
+
+      <!-- Banner: código de sync -->
+      <div class="sync-code-banner" id="sync-code-banner">
+        <div class="sync-code-info">
+          <span class="sync-code-label">Seu código para o PC</span>
+          <span class="sync-code-value" id="sync-code-display">····</span>
+        </div>
+        <button type="button" class="sync-code-copy" id="btn-copiar-codigo" title="Copiar código">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <p class="sync-code-hint">Digite este código em <strong>anotacao-enf.vercel.app/pc</strong> para ver suas anotações no computador</p>
+
       <div id="historico-lista" class="historico-lista"></div>
     </section>
 
@@ -450,8 +463,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=13"></script>
-  <script src="./app.js?v=13"></script>
+  <script src="./firebase-sync.js?v=14"></script>
+  <script src="./app.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {
