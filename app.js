@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSV();
   setupPCMode();
   setupLogin();
+  setupFrasesRapidas();
+  setupDraftAutoSave();
   updateBlocoView();
 
   // Se já tem código salvo → vai direto pro app
@@ -1010,11 +1012,18 @@ function setupPreview() {
   $('#btn-salvar').addEventListener('click', () => {
     const nomePaciente = $('#nome-paciente').value.trim();
     salvarAnotacao(els.previewText.textContent, nomePaciente);
+    clearDraft();
     showToast('Anotação salva!');
   });
 
   $('#btn-nova').addEventListener('click', () => {
     resetForm();
+  });
+
+  $('#btn-whatsapp').addEventListener('click', () => {
+    const texto = els.previewText.textContent;
+    const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(texto);
+    window.open(url, '_blank');
   });
 }
 
@@ -1047,6 +1056,8 @@ function showPCMode() {
 }
 
 // ===== HISTORICO =====
+let histFiltroAtivo = 'todos';
+
 function setupHistorico() {
   $('#btn-historico').addEventListener('click', showHistorico);
   $('#btn-voltar-historico').addEventListener('click', showForm);
@@ -1063,6 +1074,19 @@ function setupHistorico() {
       btn.style.borderColor = '';
       btn.style.color = '';
     }, 1800);
+  });
+
+  // Busca em tempo real
+  $('#hist-busca').addEventListener('input', () => renderHistorico());
+
+  // Filtros de data
+  $$('.btn-filtro').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.btn-filtro').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      histFiltroAtivo = btn.dataset.filtro;
+      renderHistorico();
+    });
   });
 }
 
@@ -1083,15 +1107,42 @@ function showHistorico() {
 
 function renderHistorico() {
   const lista = els.historicoScreen.querySelector('#historico-lista');
-  const anotacoes = getAnotacoes();
+  let anotacoes = getAnotacoes();
 
   if (anotacoes.length === 0) {
     lista.innerHTML = '<div class="historico-vazio">Nenhuma anotação salva ainda</div>';
     return;
   }
 
-  lista.innerHTML = '';
   anotacoes.sort((a, b) => b.timestamp - a.timestamp);
+
+  // Filtro por data
+  const agora = Date.now();
+  const inicioDia   = new Date(); inicioDia.setHours(0,0,0,0);
+  const inicioSemana = new Date(); inicioSemana.setDate(inicioSemana.getDate() - 7); inicioSemana.setHours(0,0,0,0);
+
+  if (histFiltroAtivo === 'hoje') {
+    anotacoes = anotacoes.filter(a => a.timestamp >= inicioDia.getTime());
+  } else if (histFiltroAtivo === 'semana') {
+    anotacoes = anotacoes.filter(a => a.timestamp >= inicioSemana.getTime());
+  }
+
+  // Filtro por busca
+  const busca = ($('#hist-busca') || {}).value || '';
+  if (busca.trim()) {
+    const termo = busca.toLowerCase();
+    anotacoes = anotacoes.filter(a =>
+      (a.nome || '').toLowerCase().includes(termo) ||
+      (a.texto || '').toLowerCase().includes(termo)
+    );
+  }
+
+  if (anotacoes.length === 0) {
+    lista.innerHTML = '<div class="historico-vazio">Nenhuma anotação encontrada</div>';
+    return;
+  }
+
+  lista.innerHTML = '';
 
   anotacoes.forEach((anot, i) => {
     const item = document.createElement('div');
@@ -1268,6 +1319,9 @@ function resetForm() {
     el.classList.remove('invalido');
   });
 
+  // Limpa rascunho
+  clearDraft();
+
   // Go to bloco 1
   state.blocoAtual = 1;
   showForm();
@@ -1421,6 +1475,119 @@ function mostrarPreviewSV(texto) {
   svPreview.style.display = 'block';
   document.querySelector('.sv-form').style.display = 'none';
   window.scrollTo({ top: 0 });
+}
+
+// ===== FRASES RÁPIDAS =====
+function setupFrasesRapidas() {
+  $$('.frase-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const target = chip.dataset.target;
+      const texto  = chip.dataset.texto;
+      const el = $('#' + target);
+      if (!el) return;
+      const atual = el.value.trim();
+      el.value = atual ? atual + ', ' + texto : texto;
+      el.dispatchEvent(new Event('input')); // dispara auto-save
+    });
+  });
+}
+
+// ===== AUTO-SAVE RASCUNHO =====
+const DRAFT_KEY = 'anotacao_draft';
+let draftTimeout = null;
+
+function setupDraftAutoSave() {
+  // Escuta qualquer mudança nos campos do formulário
+  const form = $('#blocos-wrapper');
+  if (!form) return;
+
+  form.addEventListener('change', scheduleDraftSave);
+  form.addEventListener('input',  scheduleDraftSave);
+
+  // Restaura rascunho se existir
+  restoreDraft();
+}
+
+function scheduleDraftSave() {
+  clearTimeout(draftTimeout);
+  draftTimeout = setTimeout(saveDraft, 800);
+}
+
+function saveDraft() {
+  const draft = {};
+
+  // Inputs e textareas
+  $$('#blocos-wrapper input[type="text"], #blocos-wrapper input[type="time"], #blocos-wrapper input[type="number"], #blocos-wrapper textarea').forEach(el => {
+    if (el.id) draft[el.id] = el.value;
+  });
+
+  // Radios
+  $$('#blocos-wrapper input[type="radio"]:checked').forEach(el => {
+    draft['radio_' + el.name] = el.value;
+  });
+
+  // Checkboxes
+  $$('#blocos-wrapper input[type="checkbox"]').forEach(el => {
+    if (el.id) draft['cb_' + el.id] = el.checked;
+    else if (el.name && el.value) draft['cb_' + el.name + '_' + el.value] = el.checked;
+  });
+
+  draft._bloco = state.blocoAtual;
+  draft._ts    = Date.now();
+
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+
+    // Não restaura rascunhos com mais de 24h
+    if (Date.now() - (draft._ts || 0) > 86400000) {
+      localStorage.removeItem(DRAFT_KEY);
+      return;
+    }
+
+    let restored = false;
+
+    Object.entries(draft).forEach(([key, val]) => {
+      if (key === '_bloco' || key === '_ts') return;
+
+      if (key.startsWith('radio_')) {
+        const name = key.slice(6);
+        const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); restored = true; }
+      } else if (key.startsWith('cb_')) {
+        // checkboxes by id
+        const el = document.getElementById(key.slice(3));
+        if (el) { el.checked = val; el.dispatchEvent(new Event('change')); restored = true; }
+      } else {
+        const el = document.getElementById(key);
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+          el.value = val;
+          el.dispatchEvent(new Event('input'));
+          if (val) restored = true;
+        }
+      }
+    });
+
+    if (restored) {
+      if (draft._bloco && draft._bloco > 1) {
+        state.blocoAtual = draft._bloco;
+        updateBlocoView();
+      }
+      showToast('📋 Rascunho restaurado');
+    }
+  } catch {
+    localStorage.removeItem(DRAFT_KEY);
+  }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  clearTimeout(draftTimeout);
 }
 
 // ===== LOGIN =====

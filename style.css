@@ -634,6 +634,82 @@ textarea {
   background: #C62828;
 }
 
+.btn-whatsapp {
+  background: #25D366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-whatsapp:active { background: #1da851; }
+
+/* ===== FRASES RÁPIDAS ===== */
+.frases-rapidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.frase-chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  transition: background .15s, color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.frase-chip:active {
+  background: rgba(30,136,229,.2);
+  border-color: var(--blue);
+  color: var(--blue-light);
+}
+
+/* ===== HISTÓRICO — BUSCA E FILTRO ===== */
+.hist-search-bar {
+  padding: 12px 16px 0;
+}
+.hist-search-bar input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.hist-search-bar input:focus { border-color: var(--blue); }
+
+.hist-filtros {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+.btn-filtro {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn-filtro.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
 /* ===== TOAST ===== */
 .toast {
   position: fixed;
