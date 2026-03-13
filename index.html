@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=19">
+  <link rel="stylesheet" href="./style.css?v=20">
 </head>
 <body>
   <!-- Banner de atualização -->
@@ -171,7 +171,10 @@
           </div>
 
           <div class="erro-msg" id="erro-bloco1"></div>
-          <button type="button" class="btn-next" data-next="2">Próximo</button>
+          <div class="btn-row">
+            <button type="button" class="btn-limpar" data-limpar="1">🗑 Limpar</button>
+            <button type="button" class="btn-next" data-next="2">Próximo</button>
+          </div>
         </section>
 
         <!-- BLOCO 2 - APRESENTA -->
@@ -268,6 +271,7 @@
 
           <div class="erro-msg" id="erro-bloco2"></div>
           <div class="btn-row">
+            <button type="button" class="btn-limpar" data-limpar="2">🗑 Limpar</button>
             <button type="button" class="btn-prev" data-prev="1">Voltar</button>
             <button type="button" class="btn-next" data-next="3">Próximo</button>
           </div>
@@ -295,6 +299,7 @@
 
           <div class="erro-msg" id="erro-bloco3"></div>
           <div class="btn-row">
+            <button type="button" class="btn-limpar" data-limpar="3">🗑 Limpar</button>
             <button type="button" class="btn-prev" data-prev="2">Voltar</button>
             <button type="button" class="btn-next" data-next="4">Próximo</button>
           </div>
@@ -354,6 +359,7 @@
 
           <div class="erro-msg" id="erro-bloco4"></div>
           <div class="btn-row">
+            <button type="button" class="btn-limpar" data-limpar="4">🗑 Limpar</button>
             <button type="button" class="btn-prev" data-prev="3">Voltar</button>
             <button type="button" class="btn-next" data-next="5">Próximo</button>
           </div>
@@ -629,8 +635,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=19"></script>
-  <script src="./app.js?v=19"></script>
+  <script src="./firebase-sync.js?v=20"></script>
+  <script src="./app.js?v=20"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {

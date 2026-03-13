@@ -571,6 +571,25 @@ textarea {
   margin-top: 12px;
 }
 
+.btn-limpar {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex: 0 0 auto;
+}
+.btn-limpar:active {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #475569;
+}
+
 .btn-row .btn-next {
   flex: 1;
   margin-top: 0;

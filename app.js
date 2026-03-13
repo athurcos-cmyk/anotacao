@@ -165,6 +165,13 @@ function setupNavigation() {
     });
   });
 
+  $$('.btn-limpar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const num = parseInt(btn.dataset.limpar);
+      if (num) limparBloco(num);
+    });
+  });
+
   $('#btn-gerar').addEventListener('click', () => {
     if (validateBloco(5)) {
       showPreview();
@@ -180,6 +187,41 @@ function goToBloco(num) {
   if (num === 5) {
     updateFechamentoPreview();
   }
+}
+
+function limparBloco(num) {
+  const bloco = document.getElementById(`bloco-${num}`);
+  if (!bloco) return;
+
+  // Desmarca todos os radios
+  bloco.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+
+  // Desmarca todos os checkboxes
+  bloco.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+  // Limpa todos os inputs de texto/número/horário/data e textareas
+  bloco.querySelectorAll('input[type="text"], input[type="number"], input[type="time"], input[type="date"], textarea').forEach(el => el.value = '');
+
+  // Esconde todos os campos condicionais do bloco
+  bloco.querySelectorAll('.condicional').forEach(el => el.style.display = 'none');
+
+  // Bloco 2: restaura o padrão respiratório (não é condicional mas pode ter sido escondido pelo VM)
+  if (num === 2) {
+    const padraoContainer = document.getElementById('resp-padrao-container');
+    if (padraoContainer) padraoContainer.style.display = 'block';
+  }
+
+  // Bloco 3: limpa dispositivos adicionados
+  if (num === 3) {
+    state.dispositivos = [];
+    renderDispositivos();
+  }
+
+  // Limpa mensagens de erro do bloco
+  const erroEl = bloco.querySelector('.erro-msg');
+  if (erroEl) erroEl.textContent = '';
+
+  showToast('Bloco limpo ✓');
 }
 
 function updateBlocoView() {
