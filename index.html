@@ -220,7 +220,7 @@
 
           <div class="campo" id="resp-padrao-container">
             <label>Padrão respiratório <span class="obrigatorio">*</span></label>
-            <div class="radio-group">
+            <div class="radio-group vertical">
               <label class="radio-btn"><input type="radio" name="resp-padrao" value="eupneica" data-f-value="eupneica" data-m-value="eupneico"><span>Eupneico(a)</span></label>
               <label class="radio-btn"><input type="radio" name="resp-padrao" value="dispneica" data-f-value="dispneica" data-m-value="dispneico"><span>Dispneico(a)</span></label>
               <label class="radio-btn"><input type="radio" name="resp-padrao" value="taquipneica" data-f-value="taquipneica" data-m-value="taquipneico"><span>Taquipneico(a)</span></label>
@@ -635,8 +635,8 @@
     </div>
   </div>
 
-  <script src="./firebase-sync.js?v=20"></script>
-  <script src="./app.js?v=20"></script>
+  <script src="./firebase-sync.js?v=21"></script>
+  <script src="./app.js?v=21"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {

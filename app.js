@@ -315,7 +315,11 @@ function updateGenderLabels(gender) {
   const attr = gender === 'M' ? 'm' : 'f';
   $$('[data-f-value]').forEach(radio => {
     radio.value = radio.dataset[attr + 'Value'];
-    radio.nextElementSibling.textContent = radio.dataset[attr + 'Label'];
+    // Só atualiza o label se o atributo data-*-label existir no elemento
+    const labelText = radio.dataset[attr + 'Label'];
+    if (labelText !== undefined) {
+      radio.nextElementSibling.textContent = labelText;
+    }
   });
 }
 
@@ -1447,7 +1451,7 @@ function setupHistorico() {
     showConfirm('Deseja sair da sua conta? Você precisará do seu código e PIN para entrar novamente.', () => {
       clearSession();
       showLogin();
-    });
+    }, 'Sair da conta');
   });
 
   // Revelar/ocultar código no banner
@@ -1671,9 +1675,10 @@ function closeModal() {
 
 let confirmCallback = null;
 
-function showConfirm(msg, cb) {
+function showConfirm(msg, cb, btnText) {
   els.confirmMsg.textContent = msg;
   confirmCallback = cb;
+  $('#confirm-yes').textContent = btnText || 'Sim, deletar';
   els.confirmOverlay.style.display = 'flex';
 
   // Re-bind yes button

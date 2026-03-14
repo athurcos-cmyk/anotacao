@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anotacao-v39';
+const CACHE_NAME = 'anotacao-v40';
 const ASSETS = [
   './',
   './index.html',
@@ -9,13 +9,14 @@ const ASSETS = [
   './manifest.json'
 ];
 
-// Install - cache all static assets (não pula espera automaticamente — banner cuida disso)
+// Install - cache all static assets e ativa imediatamente (sem esperar aba fechar)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
     })
   );
+  self.skipWaiting(); // Ativa o novo SW imediatamente
 });
 
 // Mensagem SKIP_WAITING — disparada pelo botão "Atualizar agora" no banner

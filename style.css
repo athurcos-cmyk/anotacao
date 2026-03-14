@@ -453,7 +453,8 @@ textarea {
 }
 
 .radio-btn span {
-  display: inline-block;
+  display: flex;
+  align-items: center;
   padding: 10px 16px;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -462,8 +463,6 @@ textarea {
   color: var(--text-dim);
   transition: all 0.2s;
   min-height: 48px;
-  display: flex;
-  align-items: center;
 }
 
 .radio-btn input:checked + span {
